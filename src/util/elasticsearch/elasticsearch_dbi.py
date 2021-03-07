@@ -1,6 +1,7 @@
 """
-
+Elasticsearch Database Interface class.
 """
+
 import logging
 import time
 
@@ -38,10 +39,10 @@ class ElasticsearchDBI:
 
         self.__tracer = logging.getLogger('elasticsearch')
         self.__tracer.setLevel(logging.INFO)
-        self.__tracer.addHandler(logging.FileHandler('elasticsearch.log'))
+        self.__tracer.addHandler(logging.FileHandler('elasticsearch_dbi.log'))
 
     @staticmethod
-    def get_instance(host, port):
+    def get_instance(host, port) -> object:
         """
         Returns existing instance of ElasticsearchDBI class, or creates new instance if none exists.
         @param host: string
@@ -70,21 +71,21 @@ class ElasticsearchDBI:
     # INDEX MANAGEMENT #
     ####################
 
-    def get_indices(self, alias='*'):
+    def get_indices(self, alias='*') -> dict:
         """
         @param alias: string, alias/index name to match, default * (all)
         @return: dict
         """
         return self.__es.indices.get_alias(index=alias)
 
-    def index_exists(self, index):
+    def index_exists(self, index) -> bool:
         """
         @param index: string
         @return: boolean
         """
         return self.__es.indices.exists(index=index)
 
-    def create_index(self, index):
+    def create_index(self, index) -> bool:
         """
         @param index: string
         @return: boolean
@@ -96,7 +97,7 @@ class ElasticsearchDBI:
         self.__es.indices.create(index=index)
         return True
 
-    def delete_index(self, index):
+    def delete_index(self, index) -> bool:
         """
         @param index: string
         @return: boolean
@@ -108,7 +109,7 @@ class ElasticsearchDBI:
         self.__es.indices.delete(index=index)
         return True
 
-    def add_index_settings(self, index, settings):
+    def add_index_settings(self, index, settings) -> None:
         """
         @param index: string
         @param settings: dict
@@ -116,7 +117,7 @@ class ElasticsearchDBI:
         """
         self.__es.indices.put_settings(index=index, body=settings)
 
-    def put_mapping(self, index, mapping):
+    def put_mapping(self, index, mapping) -> None:
         """
         @param index: string
         @param mapping: dict
@@ -131,7 +132,7 @@ class ElasticsearchDBI:
     # DOCUMENTS MANAGEMENT #
     ########################
 
-    def create_document(self, index, document, _id=None, refresh=False):
+    def create_document(self, index, document, _id=None, refresh=True) -> object:
         """
         Create new document/overwrite existing.
         @param index: string
@@ -150,7 +151,7 @@ class ElasticsearchDBI:
             logging.error(e)
             return None
 
-    def update_document(self, index, document, _id, mode='doc', refresh=True, retry_on_conflict=1):
+    def update_document(self, index, document, _id, mode='doc', refresh=True, retry_on_conflict=1) -> bool:
         """
         Update document. Update is partial, i.e only specified fields are updated.
         @param index: string
@@ -172,7 +173,7 @@ class ElasticsearchDBI:
             logging.error('Could not update document {0}. Error was {1}'.format(_id, str(e)))
             return False
 
-    def delete_document(self, index, _id, refresh=False):
+    def delete_document(self, index, _id, refresh=True) -> bool:
         """
         Delete document by id.
         @param index: string
@@ -186,7 +187,7 @@ class ElasticsearchDBI:
         except NotFoundError:
             return False
 
-    def get_document_by_id(self, index, _id):
+    def get_document_by_id(self, index, _id) -> object:
         """
         Get document by _id.
         @param index: string
@@ -201,7 +202,7 @@ class ElasticsearchDBI:
         except NotFoundError:
             return None
 
-    def mget_documents_by_id(self, index, ids, _source_includes=None):
+    def mget_documents_by_id(self, index, ids, _source_includes=None) -> object:
         """
         Get documents by ids batch.
         @param index: string
@@ -210,13 +211,13 @@ class ElasticsearchDBI:
         @return: dict/None
         """
         try:
-            return self.__es.mget(body=ids, index=index, _source_includes=_source_includes)
+            return self.__es.mget(body={'ids': ids}, index=index, _source_includes=_source_includes).get('docs', [])
         except Exception as e:
             logging.error(e)
             return None
 
     # SEARCH
-    def search_documents(self, index="_all", query_body=None, size=10000, explain=False):
+    def search_documents(self, index="_all", query_body=None, size=10000, explain=False) -> object:
         """
         Search documents that match the given query_body.
         @param index: string
@@ -235,16 +236,16 @@ class ElasticsearchDBI:
             return None
 
     def scroll_search_documents_generator(self, index, query_body=None, size=10000, sort=None, scroll='60m',
-                                          raise_on_error=False):
+                                          raise_on_error=False) -> object:
         """
-        Scroll index and return documents that match query_body one by one.
+        Scroll index and return documents that match query_body one by one (generator).
         @param index: string
         @param query_body: dict
         @param size: int
         @param sort: list
         @param scroll: string
         @param raise_on_error: boolean
-        @return: dict
+        @return: dict/None
         """
         if not query_body:
             query_body = {"query": {"match_all": {}}}
@@ -273,10 +274,10 @@ class ElasticsearchDBI:
             logging.error(e)
             if raise_on_error:
                 raise e
-            return
+            return None
 
     # BULK
-    def bulk(self, actions, chunk_size=1000, raise_on_error=False, max_retries=0, request_timeout=100):
+    def bulk(self, actions, chunk_size=1000, raise_on_error=False, max_retries=0, request_timeout=100) -> tuple:
         """
         Bulk operations. Most frequent _op_types: index, update, delete.
         @param actions: list
