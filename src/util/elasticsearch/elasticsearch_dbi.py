@@ -39,7 +39,7 @@ class ElasticsearchDBI:
 
         self.__tracer = logging.getLogger('elasticsearch')
         self.__tracer.setLevel(logging.INFO)
-        self.__tracer.addHandler(logging.FileHandler('elasticsearch_dbi.log'))
+        self.__tracer.addHandler(logging.FileHandler('elasticsearch.log'))
 
     @staticmethod
     def get_instance(host, port) -> object:
@@ -85,16 +85,17 @@ class ElasticsearchDBI:
         """
         return self.__es.indices.exists(index=index)
 
-    def create_index(self, index) -> bool:
+    def create_index(self, index, mappings=None) -> bool:
         """
         @param index: string
+        @param mappings: dict
         @return: boolean
         """
         if self.index_exists(index):
             logging.warning('Index {0} already exists'.format(index))
             return False
 
-        self.__es.indices.create(index=index)
+        self.__es.indices.create(index=index, body=mappings)
         return True
 
     def delete_index(self, index) -> bool:
