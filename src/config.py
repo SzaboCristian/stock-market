@@ -1,7 +1,7 @@
 import os
 
 PROJECT_ROOT = '/home/bmf/Desktop/Webapp_project_finance/stock-market'
-
+LOG_DIR = os.path.join(PROJECT_ROOT, 'logs')
 ELASTICSEARCH_HOST = 'localhost'
 ELASTICSEARCH_PORT = 9200
 

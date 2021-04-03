@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 import sys
 import time
@@ -10,6 +9,7 @@ from yahoofinancials import YahooFinancials
 
 import config
 from util.elasticsearch.elasticsearch_dbi import ElasticsearchDBI
+from util.logger.logger import Logger
 
 ES_BATCH_SIZE = 1000
 
@@ -21,7 +21,7 @@ def populate_stocks_from_dataset_file(es) -> bool:
     @return: boolean
     """
     if not os.path.isfile(config.DATASET_STOCKS):
-        logging.error('File {} does not exist'.format(config.DATASET_STOCKS))
+        Logger.error('File {} does not exist'.format(config.DATASET_STOCKS))
         return False
 
     es_actions = []
@@ -49,7 +49,7 @@ def populate_stocks_from_dataset_file(es) -> bool:
         success += batch_success
         failed += len(batch_failed) if isinstance(batch_failed, list) else len(es_actions)
 
-    logging.info('Done populated index {}. Success: {}; Failed: {}; Time {} seconds.'.format(
+    Logger.info('Done populated index {}. Success: {}; Failed: {}; Time {} seconds.'.format(
         config.ES_INDEX_STOCKS, success, failed, round(time.time() - start_time, 2)))
     return True
 
@@ -61,7 +61,7 @@ def populate_stock_prices_from_dataset_file(es) -> bool:
     @return: boolean
     """
     if not os.path.isfile(config.DATASET_STOCK_PRICES):
-        logging.error('File {} does not exist'.format(config.DATASET_STOCK_PRICES))
+        Logger.error('File {} does not exist'.format(config.DATASET_STOCK_PRICES))
         return False
 
     es_actions = []
@@ -87,7 +87,7 @@ def populate_stock_prices_from_dataset_file(es) -> bool:
         success += batch_success
         failed += len(batch_failed) if isinstance(batch_failed, list) else len(es_actions)
 
-    logging.info('Done populated index {}. Success: {}; Failed: {}; Time {} seconds.'.format(
+    Logger.info('Done populated index {}. Success: {}; Failed: {}; Time {} seconds.'.format(
         config.ES_INDEX_STOCK_PRICES, success, failed, round(time.time() - start_time, 2)))
     return True
 
@@ -108,7 +108,7 @@ def yf_get_historical_price_data_for_ticker(ticker, start_date='2010-01-01',
                                                       end_date=end_date,
                                                       time_interval='daily')
     if not data or not data[ticker] or 'prices' not in data[ticker]:
-        logging.warning('No price data for {}'.format(ticker))
+        Logger.warning('No price data for {}'.format(ticker))
         return []
 
     prices_dataframe = pandas.DataFrame(data[ticker]['prices'])
@@ -143,7 +143,7 @@ def yf_populate_stock_prices(es) -> bool:
         ticker = es_doc['_id'].upper()
         prices = yf_get_historical_price_data_for_ticker(ticker)
         if not prices:
-            logging.warning('No prices for ticker {}'.format(ticker))
+            Logger.warning('No prices for ticker {}'.format(ticker))
             continue
 
         for price in prices:
@@ -162,7 +162,7 @@ def yf_populate_stock_prices(es) -> bool:
         success += batch_success
         failed += len(batch_failed) if isinstance(batch_failed, list) else len(es_actions)
 
-    logging.info('Done populated index {}. Success: {}; Failed: {}; Time {} seconds.'.format(
+    Logger.info('Done populated index {}. Success: {}; Failed: {}; Time {} seconds.'.format(
         config.ES_INDEX_STOCK_PRICES, success, failed, round(time.time() - start_time, 2)))
     return True
 
@@ -173,17 +173,17 @@ if __name__ == '__main__':
     # populate from dataset
     success_stocks = populate_stocks_from_dataset_file(es_dbi)
     if not success_stocks:
-        logging.error('Indexing {} failed'.format(config.ES_INDEX_STOCKS))
+        Logger.error('Indexing {} failed'.format(config.ES_INDEX_STOCKS))
         sys.exit(-1)
 
     # populate from dataset
     success_stock_prices = populate_stock_prices_from_dataset_file(es_dbi)
     if not success_stock_prices:
-        logging.error('Indexing {} from dataset failed. Indexing using yahoofinancials...'
+        Logger.error('Indexing {} from dataset failed. Indexing using yahoofinancials...'
                       .format(config.ES_INDEX_STOCK_PRICES))
 
         # try using yahoofinancials
         success_stock_prices = yf_populate_stock_prices(es_dbi)
         if not success_stock_prices:
-            logging.error('Indexing {} failed.'.format(config.ES_INDEX_STOCK_PRICES))
+            Logger.error('Indexing {} failed.'.format(config.ES_INDEX_STOCK_PRICES))
             sys.exit(-1)

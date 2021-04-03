@@ -1,9 +1,8 @@
-import logging
-
 import config
 from scripts.init_es_database.es_mappings import ES_INDEX_STOCKS_MAPPINGS, ES_INDEX_STOCK_PRICES_MAPPINGS, \
     ES_INDEX_PORTOFOLIOS_MAPPINGS, ES_INDEX_USER_PORTOFOLIOS_MAPPINGS
 from util.elasticsearch.elasticsearch_dbi import ElasticsearchDBI
+from util.logger.logger import Logger
 
 INDEX_MAPPINGS = {config.ES_INDEX_STOCKS: ES_INDEX_STOCKS_MAPPINGS,
                   config.ES_INDEX_STOCK_PRICES: ES_INDEX_STOCK_PRICES_MAPPINGS,
@@ -24,11 +23,11 @@ def create_indices(recreate=False):
 
     for index_name in INDEX_MAPPINGS:
         if es.index_exists(index_name):
-            logging.info('Index {} already exists'.format(index_name))
+            Logger.info('Index {} already exists'.format(index_name))
             continue
 
         if not es.create_index(index_name, mappings=INDEX_MAPPINGS[index_name]):
-            logging.error('Could not create {} index'.format(index_name))
+            Logger.error('Could not create {} index'.format(index_name))
             return False
 
     return True
