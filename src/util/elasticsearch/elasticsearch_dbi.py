@@ -32,7 +32,10 @@ class ElasticsearchDBI:
         logging.info("Constructor - Elasticserch DBI @ {0}:{1}".format(host, port))
 
         try:
-            self.__es = Elasticsearch([{"host": host, "port": port}], timeout=60)
+            self.__es = Elasticsearch([{"host": host, "port": port}],
+                                      timeout=60,
+                                      retry_on_timeout=True,
+                                      max_retries=10)
             self.__host = host
             self.__port = port
             ElasticsearchDBI.connected = True
