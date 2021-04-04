@@ -1,3 +1,10 @@
+"""
+Logger class.
+"""
+
+__version__ = '0.0.1'
+__author__ = 'Szabo Cristian'
+
 import logging
 import os
 import sys
@@ -8,11 +15,20 @@ from logging.handlers import RotatingFileHandler
 import config
 
 
+class LoggerMessageType:
+    """
+    Logger message types.
+    """
+
+    INFO = 'INFO'
+    WARNING = 'WARNING'
+    ERROR = 'ERROR'
+
+
 class Logger:
-    class LoggerMessageType:
-        INFO = 'INFO'
-        WARNING = 'WARNING'
-        ERROR = 'ERROR'
+    """
+    Logger class
+    """
 
     LOG_DIR = config.LOG_DIR
     FILE = sys.stdout
@@ -45,6 +61,7 @@ class Logger:
             os.path.join(Logger.LOG_DIR, file_name)) if file_name else logging.StreamHandler(sys.stdout)
         file_handler.setFormatter(log_formatter)
         logger.addHandler(file_handler)
+
         if not no_stdout and not isinstance(file_handler, logging.StreamHandler):
             console_handler = logging.StreamHandler()
             console_handler.setFormatter(log_formatter)
@@ -68,6 +85,7 @@ class Logger:
 
         if os.path.isdir(log_dir):
             return
+
         os.makedirs(log_dir)
 
     @staticmethod
@@ -85,11 +103,10 @@ class Logger:
 
         try:
             file_path = os.path.join(log_dir, file_name)
-
-            f = open(file_path, "w+" if not os.path.isfile(file_path) else 'a+')
-            Logger.FILE = f
-        except IOError as e:
-            print(e)
+            file = open(file_path, "w+" if not os.path.isfile(file_path) else 'a+')
+            Logger.FILE = file
+        except IOError as exception:
+            print(exception)
 
     @staticmethod
     def close_log_file() -> None:
@@ -143,7 +160,7 @@ class Logger:
         @param line_end: string
         @return: None
         """
-        Logger.__log(Logger.LoggerMessageType.INFO, message, flush, line_end)
+        Logger.__log(LoggerMessageType.INFO, message, flush, line_end)
 
     @staticmethod
     def warning(message, flush=True, line_end='\n') -> None:
@@ -154,7 +171,7 @@ class Logger:
         @param line_end: string
         @return: None
         """
-        Logger.__log(Logger.LoggerMessageType.WARNING, message, flush, line_end)
+        Logger.__log(LoggerMessageType.WARNING, message, flush, line_end)
 
     @staticmethod
     def error(message, flush=True, line_end='\n') -> None:
@@ -165,7 +182,7 @@ class Logger:
         @param line_end: string
         @return: None
         """
-        Logger.__log(Logger.LoggerMessageType.ERROR, message, flush, line_end)
+        Logger.__log(LoggerMessageType.ERROR, message, flush, line_end)
 
     @staticmethod
     def exception(message, flush=True, line_end='\n') -> None:
@@ -177,5 +194,5 @@ class Logger:
         @return: None
         @return:
         """
-        Logger.__log(Logger.LoggerMessageType.ERROR, message, flush, line_end)
-        Logger.__log(Logger.LoggerMessageType.ERROR, traceback.format_exc(), flush, line_end)
+        Logger.__log(LoggerMessageType.ERROR, message, flush, line_end)
+        Logger.__log(LoggerMessageType.ERROR, traceback.format_exc(), flush, line_end)

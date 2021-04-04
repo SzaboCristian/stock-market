@@ -1,3 +1,7 @@
+"""
+Elasticsearch mappings
+"""
+
 ES_INDEX_STOCKS_MAPPINGS = {
     "mappings": {
         "properties": {
