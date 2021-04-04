@@ -53,7 +53,7 @@ class ElasticsearchDBI:
         self.__tracer.addHandler(logging.FileHandler('elasticsearch.log'))
 
     @staticmethod
-    def get_instance(host, port) -> object:
+    def get_instance(host, port):
         """
         Returns existing instance of ElasticsearchDBI class, or creates new instance if none exists.
         @param host: string
