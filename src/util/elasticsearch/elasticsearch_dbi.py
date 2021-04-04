@@ -2,17 +2,24 @@
 Elasticsearch Database Interface class.
 """
 
+__version__ = '0.0.1'
+__author__ = 'Szabo Cristian'
+
 import logging
 import time
 
 from elasticsearch import Elasticsearch, ElasticsearchException, helpers, NotFoundError, ConflictError
+
+from util.logger.logger import Logger
 
 CONNECTION_TRIALS = 3
 CONNECTION_TIMEOUT = 5
 
 
 class ElasticsearchDBI:
-    # Singleton class
+    """
+    Singleton class.
+    """
 
     instance = None
     connected = False
@@ -25,21 +32,25 @@ class ElasticsearchDBI:
         """
         if ElasticsearchDBI.instance:
             raise ElasticsearchException(
-                "Singleton Elasticsearch DBI called directly. Use ElasticsearchDBI.instance() method")
+                "Singleton Elasticsearch DBI called directly. Use ElasticsearchDBI.get_instance() method")
 
         logging.info("Constructor - Elasticserch DBI @ {0}:{1}".format(host, port))
 
         try:
-            self.__es = Elasticsearch([{"host": host, "port": port}], timeout=60)
+            self.__es = Elasticsearch([{"host": host, "port": port}],
+                                      timeout=60,
+                                      retry_on_timeout=True,
+                                      max_retries=10)
             self.__host = host
             self.__port = port
             ElasticsearchDBI.connected = True
-        except Exception as e:
-            logging.error("Could not connect to ElasticSearch at {0}:{1}. Error was {2}".format(host, port, str(e)))
+        except Exception as exception:
+            logging.error(
+                "Could not connect to ElasticSearch at {0}:{1}. Error was {2}".format(host, port, str(exception)))
 
         self.__tracer = logging.getLogger('elasticsearch')
         self.__tracer.setLevel(logging.INFO)
-        self.__tracer.addHandler(logging.FileHandler('elasticsearch_dbi.log'))
+        self.__tracer.addHandler(logging.FileHandler('elasticsearch.log'))
 
     @staticmethod
     def get_instance(host, port) -> object:
@@ -50,15 +61,13 @@ class ElasticsearchDBI:
         @return: ElasticsearchDBI object
         """
         if ElasticsearchDBI.instance is None:
-            for trial in range(CONNECTION_TRIALS):
+            for _ in range(CONNECTION_TRIALS):
                 ElasticsearchDBI.instance = ElasticsearchDBI(host=host, port=port)
-                logging.info('GOT INSTANCE {}'.format(ElasticsearchDBI.instance))
                 if ElasticsearchDBI.connected:
                     break
-                else:
-                    logging.error('Could not connect to Elasticsearch @ {0}:{1}'.format(host, port))
-                    ElasticsearchDBI.instance = None
-                    time.sleep(CONNECTION_TIMEOUT)
+                Logger.error('Could not connect to Elasticsearch @ {0}:{1}'.format(host, port))
+                ElasticsearchDBI.instance = None
+                time.sleep(CONNECTION_TIMEOUT)
 
             if not ElasticsearchDBI.connected:
                 raise ElasticsearchException(
@@ -85,16 +94,17 @@ class ElasticsearchDBI:
         """
         return self.__es.indices.exists(index=index)
 
-    def create_index(self, index) -> bool:
+    def create_index(self, index, mappings=None) -> bool:
         """
         @param index: string
+        @param mappings: dict
         @return: boolean
         """
         if self.index_exists(index):
-            logging.warning('Index {0} already exists'.format(index))
+            Logger.warning('Index {0} already exists'.format(index))
             return False
 
-        self.__es.indices.create(index=index)
+        self.__es.indices.create(index=index, body=mappings)
         return True
 
     def delete_index(self, index) -> bool:
@@ -103,7 +113,7 @@ class ElasticsearchDBI:
         @return: boolean
         """
         if not self.index_exists(index):
-            logging.warning("Index {0} does not exist".format(index))
+            Logger.warning("Index {0} does not exist".format(index))
             return False
 
         self.__es.indices.delete(index=index)
@@ -125,8 +135,8 @@ class ElasticsearchDBI:
         """
         try:
             self.__es.indices.put_mapping(body=mapping, index=index)
-        except Exception as e:
-            logging.error(f'Error putting mapping for {index}: {e}')
+        except Exception as exception:
+            Logger.error(f'Error putting mapping for {index}: {exception}')
 
     ########################
     # DOCUMENTS MANAGEMENT #
@@ -144,11 +154,11 @@ class ElasticsearchDBI:
         try:
             inserted = self.__es.index(index=index, body=document, id=_id, refresh=refresh)
             return inserted["_id"]
-        except ElasticsearchException as e:
-            logging.error(e)
+        except ElasticsearchException as es_exception:
+            Logger.error(es_exception)
             return None
-        except Exception as e:
-            logging.error(e)
+        except Exception as exception:
+            Logger.error(exception)
             return None
 
     def update_document(self, index, document, _id, mode='doc', refresh=True, retry_on_conflict=1) -> bool:
@@ -169,8 +179,8 @@ class ElasticsearchDBI:
             self.__es.update(index=index, body={mode: document}, id=_id, refresh=refresh,
                              retry_on_conflict=retry_on_conflict)
             return True
-        except (NotFoundError, ConflictError) as e:
-            logging.error('Could not update document {0}. Error was {1}'.format(_id, str(e)))
+        except (NotFoundError, ConflictError) as exception:
+            Logger.error('Could not update document {0}. Error was {1}'.format(_id, str(exception)))
             return False
 
     def delete_document(self, index, _id, refresh=True) -> bool:
@@ -212,8 +222,8 @@ class ElasticsearchDBI:
         """
         try:
             return self.__es.mget(body={'ids': ids}, index=index, _source_includes=_source_includes).get('docs', [])
-        except Exception as e:
-            logging.error(e)
+        except Exception as exception:
+            Logger.error(exception)
             return None
 
     # SEARCH
@@ -231,8 +241,8 @@ class ElasticsearchDBI:
 
         try:
             return self.__es.search(index=index, body=query_body, size=size, explain=explain)
-        except Exception as e:
-            logging.error('Search failed. {}'.format(str(e)))
+        except Exception as exception:
+            Logger.error('Search failed. {}'.format(str(exception)))
             return None
 
     def scroll_search_documents_generator(self, index, query_body=None, size=10000, sort=None, scroll='60m',
@@ -270,10 +280,10 @@ class ElasticsearchDBI:
 
             self.__es.clear_scroll(scroll_id=scroll_id)
 
-        except Exception as e:
-            logging.error(e)
+        except Exception as exception:
+            Logger.error(exception)
             if raise_on_error:
-                raise e
+                raise exception
             return None
 
     # BULK
@@ -291,6 +301,6 @@ class ElasticsearchDBI:
         try:
             return helpers.bulk(self.__es, actions, chunk_size=chunk_size, raise_on_error=raise_on_error,
                                 max_retries=max_retries, request_timeout=request_timeout)
-        except Exception as e:
-            logging.error('Error during bulk index: {0}'.format(str(e)))
-            return -1, e
+        except Exception as exception:
+            Logger.error('Error during bulk index: {0}'.format(str(exception)))
+            return -1, exception
