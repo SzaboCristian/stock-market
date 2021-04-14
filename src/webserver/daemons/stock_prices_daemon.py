@@ -2,6 +2,9 @@
 Daemon that keeps stock_prices index up to date. Historical price data is gathered using yahoofinancials library.
 """
 
+__version__ = "0.0.1"
+__author__ = "Szabo Cristian"
+
 import time
 from datetime import datetime
 
@@ -14,17 +17,17 @@ from util.logger.logger import Logger
 
 _ONE_HOUR = 3600
 _ONE_DAY = 24 * _ONE_HOUR
-DEFAULT_LAST_PRICE_DATE = '2010-01-01'
+DEFAULT_LAST_PRICE_DATE = "2010-01-01"
 
 
 def yf_get_historical_price_data_for_ticker(ticker,
                                             start_date=DEFAULT_LAST_PRICE_DATE,
-                                            end_date=datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d')) -> list:
+                                            end_date=datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d")) -> list:
     """
     Retrieve historical price data using yahoofinancials lib.
     @param ticker: string
-    @param start_date: string 'YYYY-MM-DD'
-    @param end_date: string 'YYYY-MM-DD'
+    @param start_date: string "YYYY-MM-DD"
+    @param end_date: string "YYYY-MM-DD"
     @return: list
     """
 
@@ -32,21 +35,21 @@ def yf_get_historical_price_data_for_ticker(ticker,
     yahoo_financials = YahooFinancials(ticker)
     data = yahoo_financials.get_historical_price_data(start_date=start_date,
                                                       end_date=end_date,
-                                                      time_interval='daily')
-    if not data or not data[ticker] or 'prices' not in data[ticker]:
-        Logger.warning('No price data for {}'.format(ticker))
+                                                      time_interval="daily")
+    if not data or not data[ticker] or "prices" not in data[ticker]:
+        Logger.warning("No price data for {}".format(ticker))
         return []
 
-    prices_dataframe = pandas.DataFrame(data[ticker]['prices'])
+    prices_dataframe = pandas.DataFrame(data[ticker]["prices"])
     for _, price_entry in prices_dataframe.iterrows():
         ticker_prices.append(
-            {'ticker': ticker,
-             'date': float(price_entry['date']),
-             'open': float(price_entry['open']),
-             'close': float(price_entry['close']),
-             'high': float(price_entry['high']),
-             'low': float(price_entry['low']),
-             'volume': float(price_entry['volume'])
+            {"ticker": ticker,
+             "date": float(price_entry["date"]),
+             "open": float(price_entry["open"]),
+             "close": float(price_entry["close"]),
+             "high": float(price_entry["high"]),
+             "low": float(price_entry["low"]),
+             "volume": float(price_entry["volume"])
              }
         )
 
@@ -63,9 +66,9 @@ def get_all_tickers(es_dbi):
     # get all tickers from stocks index
     try:
         tickers = es_dbi.search_documents(config.ES_INDEX_STOCKS, query_body={
-            '_source': False
+            "_source": False
         })
-        tickers = [es_doc['_id'] for es_doc in tickers['hits']['hits']]
+        tickers = [es_doc["_id"] for es_doc in tickers["hits"]["hits"]]
     except Exception as exception:
         Logger.exception(str(exception))
         tickers = []
@@ -84,9 +87,9 @@ def get_last_price_date_for_ticker(ticker, es_dbi) -> str:
     try:
         # get max timestamp for ticker
         last_timestamp_doc = es_dbi.search_documents(config.ES_INDEX_STOCK_PRICES, query_body={
-            'query': {
-                'bool': {
-                    'must': [{'term': {'ticker': ticker.lower()}}]
+            "query": {
+                "bool": {
+                    "must": [{"term": {"ticker": ticker.lower()}}]
                 }
             },
             "sort": [
@@ -97,18 +100,18 @@ def get_last_price_date_for_ticker(ticker, es_dbi) -> str:
                 }
             ]
         }, size=1)
-        if not last_timestamp_doc['hits']['hits']:
+        if not last_timestamp_doc["hits"]["hits"]:
             return ""
 
-        last_timestamp = int(last_timestamp_doc['hits']['hits'][0]['_source']['date'])
-        return datetime.fromtimestamp(last_timestamp).strftime('%Y-%m-%d')
+        last_timestamp = int(last_timestamp_doc["hits"]["hits"][0]["_source"]["date"])
+        return datetime.fromtimestamp(last_timestamp).strftime("%Y-%m-%d")
     except Exception as exception:
         Logger.exception(exception)
 
     return DEFAULT_LAST_PRICE_DATE
 
 
-def get_last_price_date_for_tickers(tickers, es_dbi):
+def get_last_price_date_for_tickers(tickers, es_dbi) -> dict:
     """
     Get last known date from stock_prices index for each ticker
     @param tickers: list
@@ -153,12 +156,12 @@ def stock_prices_updater_task() -> None:
 
     while True:
         if markets_closed_the_day_before():
-            Logger.info('Markets were closed the day before. No new price info to be found.')
+            Logger.info("Markets were closed the day before. No new price info to be found.")
             time.sleep(_ONE_HOUR)
             continue
 
         if are_markets_open():
-            Logger.info('Markets are still open, waiting to close in order to update prices.')
+            Logger.info("Markets are still open, waiting to close in order to update prices.")
             time.sleep(_ONE_HOUR)
             continue
 
@@ -172,7 +175,7 @@ def stock_prices_updater_task() -> None:
                 last_ticker_fetch_ts = time.time()
 
         # update price historical data up to
-        yf_now_date = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d')
+        yf_now_date = datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d")
 
         actions = []
         updated_ticker_last_price_dates = {}
@@ -189,8 +192,8 @@ def stock_prices_updater_task() -> None:
 
                 # add es actions and index
                 for missing_price in missing_prices:
-                    actions.append({'_index': config.ES_INDEX_STOCK_PRICES,
-                                    '_source': missing_price})
+                    actions.append({"_index": config.ES_INDEX_STOCK_PRICES,
+                                    "_source": missing_price})
 
                     # do bulk insert
                     if len(actions) >= 1000:
@@ -198,10 +201,10 @@ def stock_prices_updater_task() -> None:
                         actions = []
 
                 # set last date
-                last_price_date = datetime.fromtimestamp(missing_prices[-1]['date']).strftime('%Y-%m-%d')
+                last_price_date = datetime.fromtimestamp(missing_prices[-1]["date"]).strftime("%Y-%m-%d")
                 updated_ticker_last_price_dates[ticker] = last_price_date
 
-                Logger.info('Got price history for [{}]: {} -> {}'.format(ticker,
+                Logger.info("Got price history for [{}]: {} -> {}".format(ticker,
                                                                           ticker_last_price_dates[ticker],
                                                                           last_price_date))
 

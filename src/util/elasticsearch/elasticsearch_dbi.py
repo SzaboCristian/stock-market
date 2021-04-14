@@ -2,8 +2,8 @@
 Elasticsearch Database Interface class.
 """
 
-__version__ = '0.0.1'
-__author__ = 'Szabo Cristian'
+__version__ = "0.0.1"
+__author__ = "Szabo Cristian"
 
 import logging
 import time
@@ -48,14 +48,14 @@ class ElasticsearchDBI:
             logging.error(
                 "Could not connect to ElasticSearch at {0}:{1}. Error was {2}".format(host, port, str(exception)))
 
-        self.__tracer = logging.getLogger('elasticsearch')
+        self.__tracer = logging.getLogger("elasticsearch")
         self.__tracer.setLevel(logging.INFO)
-        self.__tracer.addHandler(logging.FileHandler('elasticsearch.log'))
+        self.__tracer.addHandler(logging.FileHandler("elasticsearch.log"))
 
     @staticmethod
     def get_instance(host, port):
         """
-        Returns existing instance of ElasticsearchDBI class, or creates new instance if none exists.
+        Returns existing api_instance of ElasticsearchDBI class, or creates new api_instance if none exists.
         @param host: string
         @param port: string
         @return: ElasticsearchDBI object
@@ -65,13 +65,13 @@ class ElasticsearchDBI:
                 ElasticsearchDBI.instance = ElasticsearchDBI(host=host, port=port)
                 if ElasticsearchDBI.connected:
                     break
-                Logger.error('Could not connect to Elasticsearch @ {0}:{1}'.format(host, port))
+                Logger.error("Could not connect to Elasticsearch @ {0}:{1}".format(host, port))
                 ElasticsearchDBI.instance = None
                 time.sleep(CONNECTION_TIMEOUT)
 
             if not ElasticsearchDBI.connected:
                 raise ElasticsearchException(
-                    'Could not connect to Elasticsearch @ {0}:{1} after {2} trials'.format(host, port,
+                    "Could not connect to Elasticsearch @ {0}:{1} after {2} trials".format(host, port,
                                                                                            CONNECTION_TRIALS))
 
         return ElasticsearchDBI.instance
@@ -80,7 +80,7 @@ class ElasticsearchDBI:
     # INDEX MANAGEMENT #
     ####################
 
-    def get_indices(self, alias='*') -> dict:
+    def get_indices(self, alias="*") -> dict:
         """
         @param alias: string, alias/index name to match, default * (all)
         @return: dict
@@ -101,7 +101,7 @@ class ElasticsearchDBI:
         @return: boolean
         """
         if self.index_exists(index):
-            Logger.warning('Index {0} already exists'.format(index))
+            Logger.warning("Index {0} already exists".format(index))
             return False
 
         self.__es.indices.create(index=index, body=mappings)
@@ -136,7 +136,7 @@ class ElasticsearchDBI:
         try:
             self.__es.indices.put_mapping(body=mapping, index=index)
         except Exception as exception:
-            Logger.error(f'Error putting mapping for {index}: {exception}')
+            Logger.error(f"Error putting mapping for {index}: {exception}")
 
     ########################
     # DOCUMENTS MANAGEMENT #
@@ -161,7 +161,7 @@ class ElasticsearchDBI:
             Logger.error(exception)
             return None
 
-    def update_document(self, index, document, _id, mode='doc', refresh=True, retry_on_conflict=1) -> bool:
+    def update_document(self, index, document, _id, mode="doc", refresh=True, retry_on_conflict=1) -> bool:
         """
         Update document. Update is partial, i.e only specified fields are updated.
         @param index: string
@@ -173,14 +173,14 @@ class ElasticsearchDBI:
         @return: boolean
         """
         try:
-            if mode not in ['doc', 'script']:
+            if mode not in ["doc", "script"]:
                 raise Exception("Invalid update mode.")
 
             self.__es.update(index=index, body={mode: document}, id=_id, refresh=refresh,
                              retry_on_conflict=retry_on_conflict)
             return True
         except (NotFoundError, ConflictError) as exception:
-            Logger.error('Could not update document {0}. Error was {1}'.format(_id, str(exception)))
+            Logger.error("Could not update document {0}. Error was {1}".format(_id, str(exception)))
             return False
 
     def delete_document(self, index, _id, refresh=True) -> bool:
@@ -221,7 +221,7 @@ class ElasticsearchDBI:
         @return: dict/None
         """
         try:
-            return self.__es.mget(body={'ids': ids}, index=index, _source_includes=_source_includes).get('docs', [])
+            return self.__es.mget(body={"ids": ids}, index=index, _source_includes=_source_includes).get("docs", [])
         except Exception as exception:
             Logger.error(exception)
             return None
@@ -242,10 +242,10 @@ class ElasticsearchDBI:
         try:
             return self.__es.search(index=index, body=query_body, size=size, explain=explain)
         except Exception as exception:
-            Logger.error('Search failed. {}'.format(str(exception)))
+            Logger.error("Search failed. {}".format(str(exception)))
             return None
 
-    def scroll_search_documents_generator(self, index, query_body=None, size=10000, sort=None, scroll='60m',
+    def scroll_search_documents_generator(self, index, query_body=None, size=10000, sort=None, scroll="60m",
                                           raise_on_error=False) -> object:
         """
         Scroll index and return documents that match query_body one by one (generator).
@@ -302,5 +302,5 @@ class ElasticsearchDBI:
             return helpers.bulk(self.__es, actions, chunk_size=chunk_size, raise_on_error=raise_on_error,
                                 max_retries=max_retries, request_timeout=request_timeout)
         except Exception as exception:
-            Logger.error('Error during bulk index: {0}'.format(str(exception)))
+            Logger.error("Error during bulk index: {0}".format(str(exception)))
             return -1, exception
