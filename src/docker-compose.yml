@@ -30,6 +30,22 @@ services:
     environment:
       ELASTICSEARCH_HOSTS: "http://container_elasticsearch_7_5_0:9200/"
 
+  webserver:
+    image: image_stock_market_webserver
+    container_name: container_stock_market_webserver
+    build: .
+    expose:
+      - 5000
+    environment:
+      elasticsearch_host: ${ELASTIC_HOST}
+      elasticsearch_port: ${ELASTIC_PORT}
+      kibana_host: ${KIBANA_HOST}
+      kibana_port: ${KIBANA_PORT}
+    env_file:
+      - .env
+    network_mode: "host"
+
+
 
 networks:
   custom_network:

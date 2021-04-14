@@ -2,8 +2,8 @@
 Logger class.
 """
 
-__version__ = '0.0.1'
-__author__ = 'Szabo Cristian'
+__version__ = "0.0.1"
+__author__ = "Szabo Cristian"
 
 import logging
 import os
@@ -20,9 +20,9 @@ class LoggerMessageType:
     Logger message types.
     """
 
-    INFO = 'INFO'
-    WARNING = 'WARNING'
-    ERROR = 'ERROR'
+    INFO = "INFO"
+    WARNING = "WARNING"
+    ERROR = "ERROR"
 
 
 class Logger:
@@ -37,7 +37,7 @@ class Logger:
     @staticmethod
     def get_logger(logger_name, file_name=None, no_stdout=False) -> object:
         """
-        Create logger instance with specified logger_name. Logger will write to file specified by file_name in current
+        Create logger api_instance with specified logger_name. Logger will write to file specified by file_name in current
         directory and stdout. If logging to stdout is not needed, set no_stdout to True.
         @param logger_name: string
         @param file_name: string
@@ -46,7 +46,7 @@ class Logger:
         """
 
         if not file_name and no_stdout:
-            raise Exception('No log location. Either specify file_name or set no_stdout to False')
+            raise Exception("No log location. Either specify file_name or set no_stdout to False")
 
         if logger_name in Logger.LOGGER_INSTANCES:
             return Logger.LOGGER_INSTANCES[logger_name]
@@ -54,7 +54,7 @@ class Logger:
         logger = logging.getLogger(logger_name)
         log_formatter = logging.Formatter("%(asctime)s [%(levelname)-8.8s] %(message)s")
 
-        if file_name and file_name[-4:] != '.log':
+        if file_name and file_name[-4:] != ".log":
             file_name = r"{}.log".format(file_name)
 
         file_handler = RotatingFileHandler(
@@ -103,7 +103,7 @@ class Logger:
 
         try:
             file_path = os.path.join(log_dir, file_name)
-            file = open(file_path, "w+" if not os.path.isfile(file_path) else 'a+')
+            file = open(file_path, "w+" if not os.path.isfile(file_path) else "a+")
             Logger.FILE = file
         except IOError as exception:
             print(exception)
@@ -124,7 +124,7 @@ class Logger:
         Datetime string formatter.
         @return: string
         """
-        return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     @staticmethod
     def __log(logger_type, message, flush, line_end) -> None:
@@ -152,7 +152,7 @@ class Logger:
             Logger.FILE.flush()
 
     @staticmethod
-    def info(message, flush=True, line_end='\n') -> None:
+    def info(message, flush=True, line_end="\n") -> None:
         """
         Log INFO.
         @param message: string
@@ -163,7 +163,7 @@ class Logger:
         Logger.__log(LoggerMessageType.INFO, message, flush, line_end)
 
     @staticmethod
-    def warning(message, flush=True, line_end='\n') -> None:
+    def warning(message, flush=True, line_end="\n") -> None:
         """
         Log WARNING.
         @param message: string
@@ -174,7 +174,7 @@ class Logger:
         Logger.__log(LoggerMessageType.WARNING, message, flush, line_end)
 
     @staticmethod
-    def error(message, flush=True, line_end='\n') -> None:
+    def error(message, flush=True, line_end="\n") -> None:
         """
         Log ERROR.
         @param message: string
@@ -185,7 +185,7 @@ class Logger:
         Logger.__log(LoggerMessageType.ERROR, message, flush, line_end)
 
     @staticmethod
-    def exception(message, flush=True, line_end='\n') -> None:
+    def exception(message, flush=True, line_end="\n") -> None:
         """
         Log ERROR wrapper for exceptions.
         @param message: string

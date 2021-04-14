@@ -18,8 +18,8 @@ class TestLogger(unittest.TestCase):
         Setup logger.
         @return: None
         """
-        self.test_logger_name = 'test_logger'
-        self.test_logger_filename = 'test.log'
+        self.test_logger_name = "test_logger"
+        self.test_logger_filename = "test.log"
         Logger.get_logger(logger_name=self.test_logger_name, file_name=self.test_logger_filename)
         Logger.set_file_logging(self.test_logger_filename)
 
@@ -63,22 +63,22 @@ class TestLogger(unittest.TestCase):
         Test log INFO.
         @return: None
         """
-        Logger.info('TEST LOG 1')
-        with open(os.path.join(Logger.LOG_DIR, self.test_logger_filename), 'r') as log_file:
-            log_data = ''.join(log_file.readlines())
-            self.assertIn('INFO', log_data)
-            self.assertIn('TEST LOG 1', log_data)
+        Logger.info("TEST LOG 1")
+        with open(os.path.join(Logger.LOG_DIR, self.test_logger_filename), "r") as log_file:
+            log_data = "".join(log_file.readlines())
+            self.assertIn("INFO", log_data)
+            self.assertIn("TEST LOG 1", log_data)
 
     def test_logger_warning(self) -> None:
         """
         Test log WARNING.
         @return: None
         """
-        Logger.warning('TEST LOG 2')
-        with open(os.path.join(Logger.LOG_DIR, self.test_logger_filename), 'r') as log_file:
-            log_data = ''.join(log_file.readlines())
-            self.assertIn('WARNING', log_data)
-            self.assertIn('TEST LOG 2', log_data)
+        Logger.warning("TEST LOG 2")
+        with open(os.path.join(Logger.LOG_DIR, self.test_logger_filename), "r") as log_file:
+            log_data = "".join(log_file.readlines())
+            self.assertIn("WARNING", log_data)
+            self.assertIn("TEST LOG 2", log_data)
 
     def test_logger_error(self) -> None:
         """
@@ -86,11 +86,11 @@ class TestLogger(unittest.TestCase):
         @return: None
         """
 
-        Logger.error('TEST LOG 3')
-        with open(os.path.join(Logger.LOG_DIR, self.test_logger_filename), 'r') as log_file:
-            log_data = ''.join(log_file.readlines())
-            self.assertIn('ERROR', log_data)
-            self.assertIn('TEST LOG 3', log_data)
+        Logger.error("TEST LOG 3")
+        with open(os.path.join(Logger.LOG_DIR, self.test_logger_filename), "r") as log_file:
+            log_data = "".join(log_file.readlines())
+            self.assertIn("ERROR", log_data)
+            self.assertIn("TEST LOG 3", log_data)
 
     def test_logger_exception(self) -> None:
         """
@@ -98,11 +98,11 @@ class TestLogger(unittest.TestCase):
         @return: None
         """
         try:
-            _ = open(None, 'r')
+            _ = open(None, "r")
         except:
-            Logger.exception('TEST LOG 4')
+            Logger.exception("TEST LOG 4")
 
-        with open(os.path.join(Logger.LOG_DIR, self.test_logger_filename), 'r') as log_file:
-            log_data = ''.join(log_file.readlines())
-            self.assertIn('ERROR', log_data)
-            self.assertIn('TEST LOG 4', log_data)
+        with open(os.path.join(Logger.LOG_DIR, self.test_logger_filename), "r") as log_file:
+            log_data = "".join(log_file.readlines())
+            self.assertIn("ERROR", log_data)
+            self.assertIn("TEST LOG 4", log_data)
