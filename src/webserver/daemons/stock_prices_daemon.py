@@ -138,10 +138,10 @@ def markets_closed_the_day_before() -> bool:
 
 def are_markets_open() -> bool:
     """
-    Most markets are closed between 00:00 - 08:00 (Europe time).
+    Most markets are closed between 00:00 - 08:00 (Europe time) and on weekends.
     @return: boolean
     """
-    return 8 <= datetime.now().hour <= 24
+    return datetime.today().weekday() not in [5, 6] and 8 <= datetime.now().hour <= 24
 
 
 def stock_prices_updater_task() -> None:

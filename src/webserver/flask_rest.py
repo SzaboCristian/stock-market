@@ -41,7 +41,9 @@ class FlaskRestPlusApi(RestPlusBaseApi):
     @staticmethod
     def get_instance():
         if FlaskRestPlusApi.api_instance is None:
-            FlaskRestPlusApi.api_instance = FlaskRestPlusApi(app=FlaskApp.get_instance())
+            FlaskRestPlusApi.api_instance = FlaskRestPlusApi(app=FlaskApp.get_instance(),
+                                                             version='0.0.1',
+                                                             prefix='/api/v1')
         return FlaskRestPlusApi.api_instance
 
     def add_resource(self, cls: Resource, *args):
