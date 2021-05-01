@@ -10,7 +10,7 @@ import json
 from flask import request
 from flask_restplus import Resource
 
-from util.logger.logger import Logger
+from webserver.core.stock_prices_management import StockPricesManagementAPI
 from webserver.core.stocks_management import StocksManagementAPI
 from webserver.flask_rest import FlaskRestPlusApi
 from webserver.responses import response_400, response
@@ -48,7 +48,17 @@ class RouteStocks(Resource):
 
     @api.doc(params={
         "ticker": api_param_query(required=False,
-                                  description="Company ticker: string"),
+                                  description="Company ticker"),
+        "sector": api_param_query(required=False,
+                                  description="Sector"),
+        "industry": api_param_query(required=False,
+                                    description="Industry"),
+        "tags": api_param_query(required=False,
+                                description="Tags"),
+        "exclude_etfs": api_param_query(required=False,
+                                        description="Exclude ETFs also.",
+                                        enum=[True, False],
+                                        default=False),
         "tickers_only": api_param_query(required=False,
                                         description="Only return tickers",
                                         default=False,
@@ -56,23 +66,25 @@ class RouteStocks(Resource):
     })
     @api.doc(responses={
         200: "OK",
-        404: "No stocks found.",
-        500: "Could not get stocks data."
+        404: "No stocks found for specified filter."
     })
     def get(self) -> response:
         ticker = request.args.get("ticker", None)
+        sector = request.args.get("sector", None)
+        industry = request.args.get("industry", None)
+        tags = request.args.get("tags", None)
+        exclude_etfs = request.args.get('exclude_etfs', False)
         tickers_only = request.args.get("tickers_only", False)
+        if isinstance(exclude_etfs, str):
+            exclude_etfs = json.loads(exclude_etfs.lower())
         if isinstance(tickers_only, str):
-            try:
-                tickers_only = json.loads(tickers_only.lower())
-            except Exception as e:
-                Logger.exception("Invalid tickers_only param. Setting to default (False)")
-                tickers_only = False
+            tickers_only = json.loads(tickers_only.lower())
 
-        return response(*StocksManagementAPI.get_stocks(ticker=ticker, ticker_only=tickers_only))
+        return response(*StocksManagementAPI.get_stocks(ticker=ticker, sector=sector, industry=industry,
+                                                        tags=tags, exclude_etfs=exclude_etfs, ticker_only=tickers_only))
 
     @api.doc(params={
-        "ticker": api_param_query(required=True, description="Company ticker: string"),
+        "ticker": api_param_query(required=True, description="Company ticker"),
     })
     @api.doc(responses={
         200: "OK",
@@ -85,3 +97,22 @@ class RouteStocks(Resource):
         if not ticker:
             return response_400("No ticker provided")
         return response(*StocksManagementAPI.add_stock(ticker=ticker))
+
+
+class RouteStockPrices(Resource):
+
+    @api.doc(params={
+        "ticker": api_param_query(required=True,
+                                  description="Company ticker"),
+    })
+    @api.doc(responses={
+        200: "OK",
+        404: "No price history for ticker",
+    })
+    def get(self) -> response:
+        ticker = request.args.get("ticker", None)
+        if not ticker:
+            return 400, {}, 'Param ticker is required'
+
+        # TODO add start_ts, end_ts date picker
+        return response(*StockPricesManagementAPI.get_price_history_for_ticker(ticker))

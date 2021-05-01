@@ -144,6 +144,18 @@ def are_markets_open() -> bool:
     return datetime.today().weekday() not in [5, 6] and 8 <= datetime.now().hour <= 24
 
 
+def should_update_stock_prices() -> bool:
+    if markets_closed_the_day_before():
+        Logger.info("Markets were closed the day before. No new price info to be found.")
+        return False
+
+    if are_markets_open():
+        Logger.info("Markets are still open, waiting to close in order to update prices.")
+        return False
+
+    return True
+
+
 def stock_prices_updater_task() -> None:
     """
     Task updates stock prices using yahoofinancials library.
@@ -153,15 +165,11 @@ def stock_prices_updater_task() -> None:
     es_dbi = ElasticsearchDBI.get_instance(config.ELASTICSEARCH_HOST, config.ELASTICSEARCH_PORT)
     ticker_last_price_dates = {}
     last_ticker_fetch_ts = 0
+    update_cnt = 0
 
     while True:
-        if markets_closed_the_day_before():
-            Logger.info("Markets were closed the day before. No new price info to be found.")
-            time.sleep(_ONE_HOUR)
-            continue
-
-        if are_markets_open():
-            Logger.info("Markets are still open, waiting to close in order to update prices.")
+        # always update on daemon startup and then at the end of each day when markets were open
+        if update_cnt != 0 and not should_update_stock_prices():
             time.sleep(_ONE_HOUR)
             continue
 
@@ -217,3 +225,4 @@ def stock_prices_updater_task() -> None:
 
         # wait 24h since iteration start
         time.sleep(_ONE_DAY - start_ts)
+        update_cnt += 1

@@ -92,40 +92,57 @@ class StocksManagementAPI:
     ########
 
     @staticmethod
-    def get_stocks(ticker=None, ticker_only=False) -> tuple:
+    def get_stocks(ticker=None, sector=None, industry=None, tags=None, exclude_etfs=False, ticker_only=False) -> tuple:
         """
-        Get stock information.
-        @param ticker: string [Optional]
-        @param ticker_only: boolean [Optional]
+        Get stocks information.
+        @param ticker: string
+        @param sector: string
+        @param industry: string
+        @param tags: string
+        @param exclude_etfs: bool
+        @param ticker_only: bool
         @return: tuple
         """
 
-        # connect to es and setup query
-        es_dbi = ElasticsearchDBI.get_instance(config.ELASTICSEARCH_HOST, config.ELASTICSEARCH_PORT)
+        # setup es query
         es_query = {"_source": False} if ticker_only else {}
-        es_query["query"] = {
-            "bool": {
-                "must": [{
-                    "term": {"_id": ticker}
-                }]
-            }
-        } if ticker else {"match_all": {}}
+        if not any([ticker, sector, industry, tags]):
+            es_query["query"] = {"match_all": {}}
+        else:
+            es_query["query"] = {"bool": {"must": []}}
+            if ticker:
+                es_query["query"]["bool"]["must"].append({"term": {"_id": ticker}})
+            if sector:
+                es_query["query"]["bool"]["must"].extend(
+                    [{"term": {"sector": sector_token.lower()}} for sector_token in sector.split(" ")])
+            if industry:
+                es_query["query"]["bool"]["must"].extend(
+                    [{"term": {"industry": industry_token.lower()}} for industry_token in industry.split(" ")])
+            if tags:
+                es_query["query"]["bool"]["must"].extend(
+                    [{"term": {"tags": tag_token.lower()}} for tag_token in tags.split(" ")])
+            if exclude_etfs:
+                es_query["query"]["bool"]["must"].append({"term": {"legal_type": "stock"}})
+
+        # connect
+        es_dbi = ElasticsearchDBI.get_instance(config.ELASTICSEARCH_HOST, config.ELASTICSEARCH_PORT)
 
         # search
-        try:
-            es_stocks = es_dbi.search_documents(config.ES_INDEX_STOCKS, query_body=es_query)
-            if es_stocks["hits"]["total"]:
-                es_stocks = es_stocks["hits"]["hits"]
-                es_stocks = [es_stock["_id"] for es_stock in es_stocks] if ticker_only else {
-                    es_stock["_id"]: es_stock["_source"] for es_stock in es_stocks}
-        except Exception as e:
-            Logger.exception(str(e))
-            return 500, [], "Could not get stocks data."
+        search_results = es_dbi.search_documents(config.ES_INDEX_STOCKS, query_body=es_query)
+        if not search_results:
+            return 500, {}, "Could not get stocks info from db."
 
-        if not es_stocks:
-            return 404, [], "No stocks found."
+        if not search_results["hits"]["total"]["value"]:
+            return 404, {}, "No stocks found for specified filter."
 
-        return 200, es_stocks, "OK"
+        # format result
+        search_results = {
+            search_result["_id"]: search_result["_source"] for search_result in
+            search_results["hits"]["hits"]
+        } if not ticker_only else \
+            [search_result["_id"] for search_result in search_results["hits"]["hits"]]
+
+        return 200, search_results, "OK"
 
     @staticmethod
     def add_stock(ticker) -> tuple:
