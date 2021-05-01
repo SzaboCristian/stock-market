@@ -110,7 +110,7 @@ class StocksManagementAPI:
         else:
             es_query["query"] = {"bool": {"must": []}}
             if ticker:
-                es_query["query"]["bool"]["must"].append({"term": {"_id": ticker}})
+                es_query["query"]["bool"]["must"].append({"term": {"_id": ticker.upper()}})
             if sector:
                 es_query["query"]["bool"]["must"].extend(
                     [{"term": {"sector": sector_token.lower()}} for sector_token in sector.split(" ")])
@@ -149,6 +149,9 @@ class StocksManagementAPI:
         @param ticker: string
         @return: tuple
         """
+
+        # uppercase ticker
+        ticker = ticker.upper()
 
         # check if ticker already in Elasticsearch
         es_dbi = ElasticsearchDBI.get_instance(config.ELASTICSEARCH_HOST, config.ELASTICSEARCH_PORT)

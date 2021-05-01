@@ -14,34 +14,9 @@ from webserver.core.stock_prices_management import StockPricesManagementAPI
 from webserver.core.stocks_management import StocksManagementAPI
 from webserver.flask_rest import FlaskRestPlusApi
 from webserver.responses import response_400, response
+from webserver.routes.utils import api_param_query, api_param_form
 
 api = FlaskRestPlusApi.get_instance()
-
-
-def api_param(_in, required=True, description=None, **kwargs) -> dict:
-    param = {
-        "in": _in,
-        "required": required,
-        "description": description
-    }
-    param.update(dict(**kwargs))
-    return param
-
-
-def api_param_path(required=True, description=None, **kwargs) -> dict:
-    return api_param("path", required, description, **kwargs)
-
-
-def api_param_query(required=True, description=None, **kwargs) -> dict:
-    return api_param("query", required, description, **kwargs)
-
-
-def api_param_form(required=True, description=None, **kwargs) -> dict:
-    return api_param("formData", required, description, **kwargs)
-
-
-def api_param_body(required=True, description=None, **kwargs) -> dict:
-    return api_param("body", required, description, **kwargs)
 
 
 class RouteStocks(Resource):
@@ -77,7 +52,7 @@ class RouteStocks(Resource):
                                                         tags=tags, ticker_only=tickers_only))
 
     @api.doc(params={
-        "ticker": api_param_query(required=True, description="Company ticker"),
+        "ticker": api_param_form(required=True, description="Company ticker"),
     })
     @api.doc(responses={
         200: "OK",
@@ -86,7 +61,7 @@ class RouteStocks(Resource):
         500: "Could not save info for ticker <>."
     })
     def post(self) -> response:
-        ticker = request.args.get("ticker", None)
+        ticker = request.form.get("ticker", None)
         if not ticker:
             return response_400("No ticker provided")
         return response(*StocksManagementAPI.add_stock(ticker=ticker))
