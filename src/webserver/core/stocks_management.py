@@ -92,14 +92,13 @@ class StocksManagementAPI:
     ########
 
     @staticmethod
-    def get_stocks(ticker=None, sector=None, industry=None, tags=None, exclude_etfs=False, ticker_only=False) -> tuple:
+    def get_stocks(ticker=None, sector=None, industry=None, tags=None, ticker_only=False) -> tuple:
         """
         Get stocks information.
         @param ticker: string
         @param sector: string
         @param industry: string
         @param tags: string
-        @param exclude_etfs: bool
         @param ticker_only: bool
         @return: tuple
         """
@@ -121,8 +120,6 @@ class StocksManagementAPI:
             if tags:
                 es_query["query"]["bool"]["must"].extend(
                     [{"term": {"tags": tag_token.lower()}} for tag_token in tags.split(" ")])
-            if exclude_etfs:
-                es_query["query"]["bool"]["must"].append({"term": {"legal_type": "stock"}})
 
         # connect
         es_dbi = ElasticsearchDBI.get_instance(config.ELASTICSEARCH_HOST, config.ELASTICSEARCH_PORT)

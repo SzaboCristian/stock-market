@@ -55,10 +55,6 @@ class RouteStocks(Resource):
                                     description="Industry"),
         "tags": api_param_query(required=False,
                                 description="Tags"),
-        "exclude_etfs": api_param_query(required=False,
-                                        description="Exclude ETFs also.",
-                                        enum=[True, False],
-                                        default=False),
         "tickers_only": api_param_query(required=False,
                                         description="Only return tickers",
                                         default=False,
@@ -73,15 +69,12 @@ class RouteStocks(Resource):
         sector = request.args.get("sector", None)
         industry = request.args.get("industry", None)
         tags = request.args.get("tags", None)
-        exclude_etfs = request.args.get('exclude_etfs', False)
         tickers_only = request.args.get("tickers_only", False)
-        if isinstance(exclude_etfs, str):
-            exclude_etfs = json.loads(exclude_etfs.lower())
         if isinstance(tickers_only, str):
             tickers_only = json.loads(tickers_only.lower())
 
         return response(*StocksManagementAPI.get_stocks(ticker=ticker, sector=sector, industry=industry,
-                                                        tags=tags, exclude_etfs=exclude_etfs, ticker_only=tickers_only))
+                                                        tags=tags, ticker_only=tickers_only))
 
     @api.doc(params={
         "ticker": api_param_query(required=True, description="Company ticker"),
