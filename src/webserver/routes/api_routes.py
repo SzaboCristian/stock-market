@@ -6,6 +6,7 @@ __version__ = "0.0.1"
 __author__ = "Szabo Cristian"
 
 import json
+import time
 
 from flask import request
 from flask_restplus import Resource
@@ -44,12 +45,13 @@ class RouteStocks(Resource):
         sector = request.args.get("sector", None)
         industry = request.args.get("industry", None)
         tags = request.args.get("tags", None)
+        exchange = request.args.get('exchange', None)
         tickers_only = request.args.get("tickers_only", False)
         if isinstance(tickers_only, str):
             tickers_only = json.loads(tickers_only.lower())
 
         return response(*StocksManagementAPI.get_stocks(ticker=ticker, sector=sector, industry=industry,
-                                                        tags=tags, ticker_only=tickers_only))
+                                                        tags=tags, exchange=exchange, ticker_only=tickers_only))
 
     @api.doc(params={
         "ticker": api_param_form(required=True, description="Company ticker"),
@@ -72,6 +74,17 @@ class RouteStockPrices(Resource):
     @api.doc(params={
         "ticker": api_param_query(required=True,
                                   description="Company ticker"),
+        'start': api_param_query(required=False,
+                                 description='Time range start',
+                                 enum=['LAST_DAY', 'LAST_WEEK', 'LAST_MONTH', 'MTD', 'LAST_YEAR', 'YTD', 'LAST_5_YEARS',
+                                       'ALL'],
+                                 default='LAST_WEEK'),
+        'start_ts': api_param_query(required=False,
+                                    description='Time range start timestamp',
+                                    default=None),
+        'end_ts': api_param_query(required=False,
+                                  description='Time range end timestamp',
+                                  default=int(time.time()))
     })
     @api.doc(responses={
         200: "OK",
@@ -81,6 +94,9 @@ class RouteStockPrices(Resource):
         ticker = request.args.get("ticker", None)
         if not ticker:
             return 400, {}, 'Param ticker is required'
+        start = request.args.get('start', 'LAST_WEEK')
+        start_ts = request.args.get('start_ts', None)
+        end_ts = request.args.get('end_ts', int(time.time()))
 
-        # TODO add start_ts, end_ts date picker
-        return response(*StockPricesManagementAPI.get_price_history_for_ticker(ticker))
+        return response(*StockPricesManagementAPI.get_price_history_for_ticker(ticker, start=start, start_ts=start_ts,
+                                                                               end_ts=end_ts))
