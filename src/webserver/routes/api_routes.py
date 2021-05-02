@@ -31,6 +31,8 @@ class RouteStocks(Resource):
                                     description="Industry"),
         "tags": api_param_query(required=False,
                                 description="Tags"),
+        "exchange": api_param_query(required=False,
+                                    description="Stock Exchange"),
         "tickers_only": api_param_query(required=False,
                                         description="Only return tickers",
                                         default=False,

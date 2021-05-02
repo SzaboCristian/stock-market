@@ -106,7 +106,7 @@ class StocksManagementAPI:
 
         # setup es query
         es_query = {"_source": False} if ticker_only else {}
-        if not any([ticker, sector, industry, tags]):
+        if not any([ticker, sector, industry, tags, exchange]):
             es_query["query"] = {"match_all": {}}
         else:
             es_query["query"] = {"bool": {"must": []}}
@@ -125,7 +125,7 @@ class StocksManagementAPI:
                 if exchange.upper() in EXCHANGE_NAMES:
                     exchange = EXCHANGE_NAMES[exchange.upper()]
                 es_query["query"]["bool"]["must"].extend(
-                    [{"term": {"tags": exchange_token.lower()}} for exchange_token in exchange.split(" ")])
+                    [{"term": {"exchanges": exchange_token.lower()}} for exchange_token in exchange.split(" ")])
 
         # connect
         es_dbi = ElasticsearchDBI.get_instance(config.ELASTICSEARCH_HOST, config.ELASTICSEARCH_PORT)
