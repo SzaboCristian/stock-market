@@ -68,6 +68,31 @@ class RouteStocks(Resource):
             return response_400("No ticker provided")
         return response(*StocksManagementAPI.add_stock(ticker=ticker))
 
+    @api.doc(params={
+        "ticker": api_param_form(required=True, description="Company ticker"),
+        "ticker_info": api_param_form(required=True, description="Updated information (json dict)")
+    })
+    @api.doc(responses={
+        200: "OK",
+        400: "No ticker provided. | No update info provided.",
+        500: "Could not update info for ticker <>."
+    })
+    def put(self) -> response:
+        ticker = request.form.get("ticker", None)
+        if not ticker:
+            return response_400("No ticker provided")
+
+        ticker_info = request.form.get("ticker_info", None)
+        if not ticker_info:
+            return response_400("No update info provided")
+
+        try:
+            ticker_info = json.loads(ticker_info)
+        except:
+            return response_400('Ticker info must be a valid json.')
+
+        return response(*StocksManagementAPI.update_stock_info(ticker=ticker, updated_info=ticker_info))
+
 
 class RouteStockPrices(Resource):
 

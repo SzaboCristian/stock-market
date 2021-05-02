@@ -177,3 +177,25 @@ class StocksManagementAPI:
             return 201, ticker_info, "OK"
 
         return 500, {}, "Could not save info for ticker {}".format(ticker)
+
+    @staticmethod
+    def update_stock_info(ticker, updated_info):
+        """
+        TODO
+        @param ticker:
+        @param updated_info:
+        @return:
+        """
+
+        ticker = ticker.upper()
+        es_dbi = ElasticsearchDBI.get_instance(config.ELASTICSEARCH_HOST, config.ELASTICSEARCH_PORT)
+
+        ticker_document = es_dbi.get_document_by_id(config.ES_INDEX_STOCKS, _id=ticker)
+        if not ticker_document:
+            return 404, {}, 'Ticker {} not in db. Please use POST API to insert new ticker.'.format(ticker)
+
+        updated = es_dbi.update_document(config.ES_INDEX_STOCKS, _id=ticker, document=updated_info)
+        if not updated:
+            return 500, False, 'Could not update info for ticker {}.'.format(ticker)
+
+        return 200, True, 'OK'

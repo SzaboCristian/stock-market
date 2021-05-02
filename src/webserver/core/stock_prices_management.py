@@ -60,7 +60,7 @@ class StockPricesManagementAPI:
             price_history[date] = es_price_doc["_source"]
 
         if not price_history:
-            return 404, {}, 'No price history for ticker {}'.format(ticker)
+            return 404, {}, 'No price history for ticker {} for specified time range.'.format(ticker)
 
         price_history = {k: v for k, v in sorted(price_history.items(), key=lambda x: x[0], reverse=True)}
         return 200, price_history, 'OK'
