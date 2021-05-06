@@ -92,26 +92,32 @@ class StocksManagementAPI:
     ########
 
     @staticmethod
-    def get_stocks(ticker=None, sector=None, industry=None, tags=None, exchange=None, ticker_only=False) -> tuple:
+    def get_stocks(ticker=None, company_name=None, sector=None, industry=None, tags=None, exchange=None,
+                   legal_type=None, ticker_only=False) -> tuple:
         """
         Get stocks information.
         @param ticker: string
+        @param company_name: string
         @param sector: string
         @param industry: string
         @param tags: string
         @param exchange: string
+        @param legal_type: string
         @param ticker_only: bool
         @return: tuple
         """
 
         # setup es query
         es_query = {"_source": False} if ticker_only else {}
-        if not any([ticker, sector, industry, tags, exchange]):
+        if not any([ticker, company_name, sector, industry, tags, exchange, legal_type]):
             es_query["query"] = {"match_all": {}}
         else:
             es_query["query"] = {"bool": {"must": []}}
             if ticker:
                 es_query["query"]["bool"]["must"].append({"term": {"_id": ticker.upper()}})
+            if company_name:
+                es_query["query"]["bool"]["must"].extend(
+                    [{"term": {"names": company_name_token.lower()}} for company_name_token in company_name.split(" ")])
             if sector:
                 es_query["query"]["bool"]["must"].extend(
                     [{"term": {"sector": sector_token.lower()}} for sector_token in sector.split(" ")])
@@ -126,6 +132,11 @@ class StocksManagementAPI:
                     exchange = EXCHANGE_NAMES[exchange.upper()]
                 es_query["query"]["bool"]["must"].extend(
                     [{"term": {"exchanges": exchange_token.lower()}} for exchange_token in exchange.split(" ")])
+            if legal_type:
+                if legal_type.lower() == 'etf':
+                    legal_type = 'Exchange Traded Fund'
+                es_query["query"]["bool"]["must"].extend(
+                    [{"term": {"legal_type": legal_type_token.lower()}} for legal_type_token in legal_type.split(" ")])
 
         # connect
         es_dbi = ElasticsearchDBI.get_instance(config.ELASTICSEARCH_HOST, config.ELASTICSEARCH_PORT)
@@ -179,12 +190,12 @@ class StocksManagementAPI:
         return 500, {}, "Could not save info for ticker {}".format(ticker)
 
     @staticmethod
-    def update_stock_info(ticker, updated_info):
+    def update_stock_info(ticker, updated_info) -> tuple:
         """
-        TODO
-        @param ticker:
-        @param updated_info:
-        @return:
+        Update ticker info with given updated_info.
+        @param ticker: string
+        @param updated_info: dict
+        @return: tuple
         """
 
         ticker = ticker.upper()
