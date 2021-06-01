@@ -108,10 +108,8 @@ class StocksManagementAPI:
         """
 
         # setup es query
-        es_query = {"_source": False} if ticker_only else {}
-        if not any([ticker, company_name, sector, industry, tags, exchange, legal_type]):
-            es_query["query"] = {"match_all": {}}
-        else:
+        es_query = {"_source": False, "query": {"match_all": {}}} if ticker_only else {"query": {"match_all": {}}}
+        if any([ticker, company_name, sector, industry, tags, exchange, legal_type]):
             es_query["query"] = {"bool": {"must": []}}
             if ticker:
                 es_query["query"]["bool"]["must"].append({"term": {"_id": ticker.upper()}})
@@ -184,10 +182,10 @@ class StocksManagementAPI:
         # Save ticker info
         stock_added = es_dbi.create_document(config.ES_INDEX_STOCKS, _id=ticker_info["ticker"],
                                              document={k: v for k, v in ticker_info.items() if k != "ticker"})
-        if stock_added:
-            return 201, ticker_info, "OK"
+        if not stock_added:
+            return 500, {}, "Could not save info for ticker {}".format(ticker)
 
-        return 500, {}, "Could not save info for ticker {}".format(ticker)
+        return 201, ticker_info, "OK"
 
     @staticmethod
     def update_stock_info(ticker, updated_info) -> tuple:
