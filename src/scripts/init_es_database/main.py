@@ -4,7 +4,7 @@ Script initializes ES indices. Mappings are specified in es_mappings.py file.
 __version__ = '0.0.1'
 __author__ = 'Szabo Cristian'
 
-import config
+from util import config
 from scripts.init_es_database.es_mappings import ES_INDEX_STOCKS_MAPPINGS, ES_INDEX_STOCK_PRICES_MAPPINGS, \
     ES_INDEX_PORTOFOLIOS_MAPPINGS, ES_INDEX_USER_PORTOFOLIOS_MAPPINGS
 from util.elasticsearch.elasticsearch_dbi import ElasticsearchDBI

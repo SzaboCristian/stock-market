@@ -4,7 +4,7 @@ ElasticsearchDBI test case.
 
 import unittest
 
-import config
+from util import config
 from util.elasticsearch.elasticsearch_dbi import ElasticsearchDBI
 
 

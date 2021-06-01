@@ -7,7 +7,7 @@ __author__ = "Szabo Cristian"
 
 from yfinance import Ticker
 
-import config
+from util import config
 from util.elasticsearch.elasticsearch_dbi import ElasticsearchDBI
 from util.logger.logger import Logger
 
@@ -133,8 +133,8 @@ class StocksManagementAPI:
                 es_query["query"]["bool"]["must"].extend(
                     [{"term": {"exchanges": exchange_token.lower()}} for exchange_token in exchange.split(" ")])
             if legal_type:
-                if legal_type.lower() == 'etf':
-                    legal_type = 'Exchange Traded Fund'
+                if legal_type.lower() == "etf":
+                    legal_type = "Exchange Traded Fund"
                 es_query["query"]["bool"]["must"].extend(
                     [{"term": {"legal_type": legal_type_token.lower()}} for legal_type_token in legal_type.split(" ")])
 
@@ -203,13 +203,13 @@ class StocksManagementAPI:
 
         ticker_document = es_dbi.get_document_by_id(config.ES_INDEX_STOCKS, _id=ticker)
         if not ticker_document:
-            return 404, {}, 'Ticker {} not in db. Please use POST API to insert new ticker.'.format(ticker)
+            return 404, {}, "Ticker {} not in db. Please use POST API to insert new ticker.".format(ticker)
 
         updated = es_dbi.update_document(config.ES_INDEX_STOCKS, _id=ticker, document=updated_info)
         if not updated:
-            return 500, False, 'Could not update info for ticker {}.'.format(ticker)
+            return 500, False, "Could not update info for ticker {}.".format(ticker)
 
-        return 200, True, 'OK'
+        return 200, True, "OK"
 
     @staticmethod
     def delete_stock(ticker) -> tuple:
@@ -225,26 +225,6 @@ class StocksManagementAPI:
         # delete stock
         ticker_deleted = es_dbi.delete_document(config.ES_INDEX_STOCKS, _id=ticker)
         if not ticker_deleted:
-            return 404, False, 'Ticker {} not found'.format(ticker)
+            return 404, False, "Ticker {} not found".format(ticker)
 
-        # delete price history
-        actions = []
-        for es_price_history_document in es_dbi.scroll_search_documents_generator(
-                config.ES_INDEX_STOCK_PRICES,
-                query_body={
-                    'query': {'bool': {'must': [{'term': {'ticker': ticker.lower()}}]}}
-                }):
-            if es_price_history_document['_source']['ticker'].upper() == ticker:
-                actions.append({'_index': config.ES_INDEX_STOCK_PRICES,
-                                '_op_type': 'delete',
-                                '_id': es_price_history_document['_id']})
-
-        while actions:
-            batch = actions[:1000]
-            es_dbi.bulk(actions=batch, chunk_size=len(batch))
-            if len(actions) > 1000:
-                actions = actions[1000:]
-            else:
-                actions = []
-
-        return 200, True, 'OK'
+        return 200, True, "OK"
