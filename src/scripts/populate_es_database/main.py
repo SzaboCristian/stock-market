@@ -9,14 +9,11 @@ import json
 import os
 import sys
 import time
-from datetime import datetime
 
-import pandas
-from yahoofinancials import YahooFinancials
-
-import config
+from util import config
 from util.elasticsearch.elasticsearch_dbi import ElasticsearchDBI
 from util.logger.logger import Logger
+from util.util import yf_get_historical_price_data_for_ticker
 
 ES_BATCH_SIZE = 1000
 
@@ -97,41 +94,6 @@ def populate_stock_prices_from_dataset_file(es_dbi) -> bool:
     Logger.info('Done populated index {}. Success: {}; Failed: {}; Time {} seconds.'.format(
         config.ES_INDEX_STOCK_PRICES, success, failed, round(time.time() - start_time, 2)))
     return True
-
-
-def yf_get_historical_price_data_for_ticker(ticker, start_date='2010-01-01',
-                                            end_date=datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d')) -> list:
-    """
-    Retrieve historical price data using yahoofinancials lib.
-    @param ticker: string
-    @param start_date: string 'YYYY-MM-DD'
-    @param end_date: string 'YYYY-MM-DD'
-    @return: list
-    """
-
-    ticker_prices = []
-    yahoo_financials = YahooFinancials(ticker)
-    data = yahoo_financials.get_historical_price_data(start_date=start_date,
-                                                      end_date=end_date,
-                                                      time_interval='daily')
-    if not data or not data[ticker] or 'prices' not in data[ticker]:
-        Logger.warning('No price data for {}'.format(ticker))
-        return []
-
-    prices_dataframe = pandas.DataFrame(data[ticker]['prices'])
-    for _, price_entry in prices_dataframe.iterrows():
-        ticker_prices.append(
-            {'ticker': ticker,
-             'date': float(price_entry['date']),
-             'open': float(price_entry['open']),
-             'close': float(price_entry['close']),
-             'high': float(price_entry['high']),
-             'low': float(price_entry['low']),
-             'volume': float(price_entry['volume'])
-             }
-        )
-
-    return ticker_prices
 
 
 def yf_populate_stock_prices(es_dbi) -> bool:

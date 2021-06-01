@@ -12,7 +12,7 @@ import traceback
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
 
-import config
+from util import config
 
 
 class LoggerMessageType:
