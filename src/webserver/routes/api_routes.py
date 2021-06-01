@@ -93,6 +93,21 @@ class RouteStocks(Resource):
 
         return response(*StocksManagementAPI.update_stock_info(ticker=ticker, updated_info=ticker_info))
 
+    @api.doc(params={
+        "ticker": api_param_query(required=True,
+                                  description="Company ticker")
+    })
+    @api.doc(responses={
+        200: "OK",
+        404: "Ticker <> not found.",
+    })
+    def delete(self) -> response:
+        ticker, msg = get_request_parameter(name='ticker', expected_type=str, required=True)
+        if not ticker:
+            return response_400(msg)
+
+        return response(*StocksManagementAPI.delete_stock(ticker=ticker))
+
 
 class RouteStockPrices(Resource):
 

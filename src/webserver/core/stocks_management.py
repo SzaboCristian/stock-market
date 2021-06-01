@@ -210,3 +210,41 @@ class StocksManagementAPI:
             return 500, False, 'Could not update info for ticker {}.'.format(ticker)
 
         return 200, True, 'OK'
+
+    @staticmethod
+    def delete_stock(ticker) -> tuple:
+        """
+        Delete stock and price history for specified ticker.
+        @param ticker: string
+        @return: tuple
+        """
+
+        ticker = ticker.upper()
+        es_dbi = ElasticsearchDBI.get_instance(config.ELASTICSEARCH_HOST, config.ELASTICSEARCH_PORT)
+
+        # delete stock
+        ticker_deleted = es_dbi.delete_document(config.ES_INDEX_STOCKS, _id=ticker)
+        if not ticker_deleted:
+            return 404, False, 'Ticker {} not found'.format(ticker)
+
+        # delete price history
+        actions = []
+        for es_price_history_document in es_dbi.scroll_search_documents_generator(
+                config.ES_INDEX_STOCK_PRICES,
+                query_body={
+                    'query': {'bool': {'must': [{'term': {'ticker': ticker.lower()}}]}}
+                }):
+            if es_price_history_document['_source']['ticker'].upper() == ticker:
+                actions.append({'_index': config.ES_INDEX_STOCK_PRICES,
+                                '_op_type': 'delete',
+                                '_id': es_price_history_document['_id']})
+
+        while actions:
+            batch = actions[:1000]
+            es_dbi.bulk(actions=batch, chunk_size=len(batch))
+            if len(actions) > 1000:
+                actions = actions[1000:]
+            else:
+                actions = []
+
+        return 200, True, 'OK'

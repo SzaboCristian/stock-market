@@ -51,13 +51,15 @@ class StockPricesManagementAPI:
         for es_price_doc in es_dbi.scroll_search_documents_generator(config.ES_INDEX_STOCK_PRICES, query_body={
             'query': {
                 'bool': {
-                    'must': [{'term': {'ticker': ticker.lower()}},
-                             {'range': {'date': {'gte': start_ts, 'lte': end_ts}}}]
+                    'must': [
+                        {"term": {"ticker": ticker.lower()}},
+                        {'range': {'date': {'gte': start_ts, 'lte': end_ts}}}]
                 }
             }
         }):
-            date = datetime.fromtimestamp(es_price_doc['_source'].get('date', None)).strftime('%Y-%m-%d')
-            price_history[date] = es_price_doc["_source"]
+            if es_price_doc["_source"]["ticker"].lower() == ticker.lower():
+                date = datetime.fromtimestamp(es_price_doc['_source'].get('date', None)).strftime('%Y-%m-%d')
+                price_history[date] = es_price_doc["_source"]
 
         if not price_history:
             return 404, {}, 'No price history for ticker {} for specified time range.'.format(ticker)

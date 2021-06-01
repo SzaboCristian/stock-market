@@ -73,7 +73,7 @@ def get_all_tickers(es_dbi):
         Logger.exception(str(exception))
         tickers = []
 
-    return tickers
+    return sorted(tickers)
 
 
 def get_last_price_date_for_ticker(ticker, es_dbi) -> str:
@@ -83,14 +83,12 @@ def get_last_price_date_for_ticker(ticker, es_dbi) -> str:
     @param es_dbi: ElasticsearchDBI object
     @return: string
     """
-
     try:
         # get max timestamp for ticker
-        last_timestamp_doc = es_dbi.search_documents(config.ES_INDEX_STOCK_PRICES, query_body={
+        last_timestamp_docs = es_dbi.search_documents(config.ES_INDEX_STOCK_PRICES, query_body={
             "query": {
-                "bool": {
-                    "must": [{"term": {"ticker": ticker.lower()}}]
-                }
+                'bool': {
+                    'must': [{'term': {'ticker': ticker.lower()}}]}
             },
             "sort": [
                 {
@@ -100,10 +98,14 @@ def get_last_price_date_for_ticker(ticker, es_dbi) -> str:
                 }
             ]
         }, size=1)
-        if not last_timestamp_doc["hits"]["hits"]:
-            return ""
+        if not last_timestamp_docs or not last_timestamp_docs["hits"]["hits"]:
+            return DEFAULT_LAST_PRICE_DATE
 
-        last_timestamp = int(last_timestamp_doc["hits"]["hits"][0]["_source"]["date"])
+        if last_timestamp_docs["hits"]["hits"][0]["_source"]["ticker"].lower() != ticker.lower():
+            # if ticker name is different => ticker is missing and regepx matched other (ex. ticker A)
+            return DEFAULT_LAST_PRICE_DATE
+
+        last_timestamp = int(last_timestamp_docs["hits"]["hits"][0]["_source"]["date"])
         return datetime.fromtimestamp(last_timestamp).strftime("%Y-%m-%d")
     except Exception as exception:
         Logger.exception(exception)
