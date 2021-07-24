@@ -17,6 +17,7 @@ api = FlaskRestPlusApi.get_instance()
 
 class RouteInvestmentCalculatorReturnRate(Resource):
 
+    @staticmethod
     @api.doc(params={
         "starting_amount": api_param_query(required=True,
                                            description="Starting amount in USD",
@@ -40,7 +41,7 @@ class RouteInvestmentCalculatorReturnRate(Resource):
         200: "OK",
         400: "Param <> is required"
     })
-    def get(self) -> response:
+    def get() -> response:
         starting_amount, msg = get_request_parameter("starting_amount", expected_type=int, required=True)
         if starting_amount is None:
             return response_400(msg)
@@ -76,6 +77,7 @@ class RouteInvestmentCalculatorReturnRate(Resource):
 
 
 class RouteInvestmentCalculatorCompoundInterest(Resource):
+    @staticmethod
     @api.doc(params={
         "starting_amount": api_param_query(required=True,
                                            description="Starting amount in USD",
@@ -99,7 +101,7 @@ class RouteInvestmentCalculatorCompoundInterest(Resource):
         200: "OK",
         400: "Param <> is required"
     })
-    def get(self) -> response:
+    def get() -> response:
         starting_amount, msg = get_request_parameter("starting_amount", expected_type=int, required=True)
         if starting_amount is None:
             return response_400(msg)

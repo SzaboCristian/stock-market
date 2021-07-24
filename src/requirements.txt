@@ -7,4 +7,4 @@ Flask==1.1.2
 flask-restplus==0.13.0
 Flask-SQLAlchemy==2.5.1
 SQLAlchemy~=1.4.22
-pyjwt~=2.1.0
+pyjwt~=1.7.1

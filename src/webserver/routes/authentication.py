@@ -6,6 +6,7 @@ __version__ = "0.0.1"
 __author__ = "Szabo Cristian"
 
 import datetime
+from functools import wraps
 
 import jwt
 from flask import request
@@ -22,13 +23,36 @@ api = FlaskRestPlusApi.get_instance()
 app = FlaskApp.get_instance()
 
 
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+
+        if 'x-access-token' in request.headers:
+            token = request.headers['x-access-token']
+
+        if not token:
+            return response(401, {}, 'Token is missing')
+
+        try:
+            data = jwt.decode(token, app.config["SECRET_KEY"])
+            current_user = User.query.filter_by(public_id=data['public_id']).first()
+        except:
+            return response(401, {}, 'Invalid token.')
+
+        return f(current_user, *args, **kwargs)
+
+    return decorated
+
+
 class RouteLogin(Resource):
 
+    @staticmethod
     @api.doc(responses={
         201: "OK",
         401: "Could not verify authorization."
     })
-    def post(self) -> response:
+    def post() -> response:
         auth = request.authorization
         if not auth or not auth.username or not auth.password:
             return response(401, {'WWW-Authenticate': 'Basic realm="Login required!"'},
@@ -47,12 +71,13 @@ class RouteLogin(Resource):
             {'public_id': user.public_id,
              'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)},
             app.config["SECRET_KEY"])
-        
-        return response(201, {'token': token}, 'OK')
+
+        return response(201, {'token': token.decode('UTF-8')}, 'OK')
 
 
 class RouteRegister(Resource):
 
+    @staticmethod
     @api.doc(params={
         "username": api_param_form(required=True, description="Username"),
         "password": api_param_form(required=True, description="Password"),
@@ -63,7 +88,7 @@ class RouteRegister(Resource):
         409: "Username already exists.",
         500: "Could not create user."
     })
-    def post(self) -> response:
+    def post() -> response:
         username, msg = get_request_parameter(name="username", expected_type=str, required=True)
         if not username:
             return response_400(msg)
@@ -72,5 +97,4 @@ class RouteRegister(Resource):
         if not password:
             return response_400(msg)
         hashed_password = generate_password_hash(password=password, method='sha256')
-
         return response(*UsersManagementAPI.create_user(username=username, hashed_password=hashed_password))

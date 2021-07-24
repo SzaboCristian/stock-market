@@ -12,6 +12,7 @@ from flask_restplus import Resource
 from webserver.core.stock_prices_management import StockPricesManagementAPI
 from webserver.flask_rest import FlaskRestPlusApi
 from webserver.responses import response_400, response
+from webserver.routes.authentication import token_required
 from webserver.routes.utils import api_param_query, api_param_form, get_request_parameter
 
 api = FlaskRestPlusApi.get_instance()
@@ -19,6 +20,7 @@ api = FlaskRestPlusApi.get_instance()
 
 class RouteStockPrices(Resource):
 
+    @staticmethod
     @api.doc(params={
         "ticker": api_param_query(required=True,
                                   description="Company ticker"),
@@ -38,7 +40,7 @@ class RouteStockPrices(Resource):
         200: "OK",
         404: "No price history for ticker",
     })
-    def get(self) -> response:
+    def get() -> response:
         ticker, msg = get_request_parameter(name="ticker", expected_type=str, required=True)
         if not ticker:
             return response_400(msg)
@@ -50,6 +52,7 @@ class RouteStockPrices(Resource):
         return response(*StockPricesManagementAPI.get_price_history_for_ticker(ticker, start=start, start_ts=start_ts,
                                                                                end_ts=end_ts))
 
+    @staticmethod
     @api.doc(params={
         "ticker": api_param_form(required=True,
                                  description="Company ticker")
@@ -58,13 +61,18 @@ class RouteStockPrices(Resource):
         200: "OK",
         404: "No stock for ticker <> | No price history found for ticker <>."
     })
-    def post(self) -> response:
+    @token_required
+    def post(current_user) -> response:
+        if not current_user.admin:
+            return response(401, {}, 'Unauthorized operation.')
+
         ticker, msg = get_request_parameter(name="ticker", expected_type=str, required=True)
         if not ticker:
             return response_400(msg)
 
         return response(*StockPricesManagementAPI.add_price_history_for_stock(ticker=ticker))
 
+    @staticmethod
     @api.doc(params={
         "ticker": api_param_query(required=True,
                                   description="Company ticker")
@@ -73,7 +81,11 @@ class RouteStockPrices(Resource):
         200: "OK",
         404: "No price history found for ticker <>. | Investment length must be greater or equal to 1",
     })
-    def delete(self) -> response:
+    @token_required
+    def delete(current_user) -> response:
+        if not current_user.admin:
+            return response(401, {}, 'Unauthorized operation.')
+
         ticker, msg = get_request_parameter(name="ticker", expected_type=str, required=True)
         if not ticker:
             return response_400(msg)
