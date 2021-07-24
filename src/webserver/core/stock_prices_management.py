@@ -11,7 +11,7 @@ from datetime import datetime
 
 from util import config
 from util.elasticsearch.elasticsearch_dbi import ElasticsearchDBI
-from util.util import DEFAULT_LAST_PRICE_DATE, yf_get_historical_price_data_for_ticker, get_last_price_date_for_ticker
+from util.utils import DEFAULT_LAST_PRICE_DATE, yf_get_historical_price_data_for_ticker, get_last_price_date_for_ticker
 
 NOW_DATE = datetime.now()
 NOW_TIMESTAMP = int(time.time())

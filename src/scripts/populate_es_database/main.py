@@ -13,7 +13,7 @@ import time
 from util import config
 from util.elasticsearch.elasticsearch_dbi import ElasticsearchDBI
 from util.logger.logger import Logger
-from util.util import yf_get_historical_price_data_for_ticker
+from util.utils import yf_get_historical_price_data_for_ticker
 
 ES_BATCH_SIZE = 1000
 

@@ -92,7 +92,7 @@ def get_request_parameter(name, expected_type, required=False):
         param = get_request_body_parameter(name)
     if not param:
         param = request.form.get(name, None)
-    if not param:
+    if param is None:
         return (None, 'Param {} is required'.format(param)) if required else None
 
     param, msg = validate_param_type(param, expected_type)

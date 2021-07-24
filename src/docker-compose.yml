@@ -43,6 +43,8 @@ services:
       kibana_port: ${KIBANA_PORT}
     env_file:
       - .env
+    volumes:
+      - /home/bmf/Desktop/Webapp_project_finance/stock-market/data:/usr/flask-app/data
     network_mode: "host"
 
 

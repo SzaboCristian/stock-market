@@ -5,6 +5,8 @@ Wrapper classes for flask.Flask and flask_restplus.Api
 __version__ = "0.0.1"
 __author__ = "Szabo Cristian"
 
+import os
+
 from flask import Flask
 from flask_restplus import Api as RestPlusBaseApi, Resource
 
@@ -13,11 +15,7 @@ class FlaskApp:
     app_instance = None
 
     def __init__(self):
-        app = Flask(__name__,
-                    static_url_path="",
-                    static_folder=".",
-                    template_folder=".")
-        app.url_map.strict_slashes = False
+        raise Exception('FlaskApp constructor called directly. Use get_instance() method.')
 
     @staticmethod
     def get_instance() -> Flask:
@@ -27,6 +25,9 @@ class FlaskApp:
                                           static_folder=".",
                                           template_folder=".")
             FlaskApp.app_instance.url_map.strict_slashes = False
+            FlaskApp.app_instance.config["SECRET_KEY"] = os.environ["FLASK_SECRET"]
+            FlaskApp.app_instance.config["SQLALCHEMY_DATABASE_URI"] = f'sqlite://///usr/flask-app/data/users.sqlite'
+            FlaskApp.app_instance.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
         return FlaskApp.app_instance
 

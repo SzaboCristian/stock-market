@@ -7,7 +7,7 @@ __author__ = "Szabo Cristian"
 
 from util import config
 from util.elasticsearch.elasticsearch_dbi import ElasticsearchDBI
-from util.util import EXCHANGE_NAMES, yf_get_info_for_ticker
+from util.utils import EXCHANGE_NAMES, yf_get_info_for_ticker
 
 
 class StocksManagementAPI:
