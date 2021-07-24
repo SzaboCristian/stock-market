@@ -1,4 +1,5 @@
 from webserver.flask_rest import FlaskApp, FlaskRestPlusApi
+from webserver.routes.authentication import RouteLogin, RouteRegister
 from webserver.routes.investment_calculator import RouteInvestmentCalculatorReturnRate, \
     RouteInvestmentCalculatorCompoundInterest
 from webserver.routes.stock_prices import RouteStockPrices
@@ -10,6 +11,9 @@ flask_app = FlaskApp.get_instance()
 flask_api = FlaskRestPlusApi.get_instance()
 
 flask_api.ns('users').add_resource(RouteUsers, "/users")
+
+flask_api.ns('auth').add_resource(RouteLogin, "/login")
+flask_api.ns('auth').add_resource(RouteRegister, "/register")
 
 flask_api.ns('stocks').add_resource(RouteStocks, "/stocks")
 flask_api.ns('stock_prices').add_resource(RouteStockPrices, "/stock-prices")
