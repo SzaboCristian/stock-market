@@ -5,3 +5,6 @@ yahoofinancials==1.6
 Werkzeug==0.16.1
 Flask==1.1.2
 flask-restplus==0.13.0
+Flask-SQLAlchemy==2.5.1
+SQLAlchemy~=1.4.22
+pyjwt~=1.7.1

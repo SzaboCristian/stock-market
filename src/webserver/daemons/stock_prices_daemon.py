@@ -11,7 +11,7 @@ from datetime import datetime
 from util import config
 from util.elasticsearch.elasticsearch_dbi import ElasticsearchDBI
 from util.logger.logger import Logger
-from util.util import get_all_tickers, get_last_price_date_for_tickers, yf_get_historical_price_data_for_ticker
+from util.utils import get_all_tickers, get_last_price_date_for_tickers, yf_get_historical_price_data_for_ticker
 
 _ONE_HOUR = 3600
 _ONE_DAY = 24 * _ONE_HOUR

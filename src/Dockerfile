@@ -15,4 +15,4 @@ COPY ./ ./
 ENV PYTHONPATH="$PYTHONPATH:."
 
 # Run webserver
-CMD ["python", "-m", "webserver.wsgi"]
+CMD ["python", "-m", "webserver.app"]

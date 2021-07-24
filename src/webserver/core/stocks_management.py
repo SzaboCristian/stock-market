@@ -5,87 +5,12 @@ Stock management APIs.
 __version__ = "0.0.1"
 __author__ = "Szabo Cristian"
 
-from yfinance import Ticker
-
 from util import config
 from util.elasticsearch.elasticsearch_dbi import ElasticsearchDBI
-from util.logger.logger import Logger
-
-EXCHANGE_NAMES = {"NMS": "National Market System",
-                  "BTS": "BitShares BTS",
-                  "NGM": "Nordic Growth Market",
-                  "PCX": "Pacific Exchange",
-                  "PNK": "Pink Sheets (OTC)",
-                  "NYQ": "New York Stock Exchange",
-                  "NCM": "NCM Nasdaq Commodities",
-                  "ASE": "Amman Stock Exchange"
-                  }
+from util.utils import EXCHANGE_NAMES, yf_get_info_for_ticker
 
 
 class StocksManagementAPI:
-
-    #########
-    # Utils #
-    #########
-
-    @staticmethod
-    def get_exchange_name(exchange) -> str:
-        """
-        Return exchange full name.
-        @param exchange: string, exchange abbreviation.
-        @return: string
-        """
-        if exchange not in EXCHANGE_NAMES:
-            return exchange
-        return EXCHANGE_NAMES[exchange]
-
-    @staticmethod
-    def get_info_by_ticker(ticker) -> dict:
-        """
-        Get ticker info using yfinance and format result.
-        @param ticker: string
-        @return: dict
-        """
-        yf_ticker = Ticker(ticker)
-        try:
-            _ = yf_ticker.info
-        except Exception as e:
-            Logger.exception("No info for ticker {}. {}".format(ticker, str(e)))
-            return {}
-
-        info = dict()
-        info["ticker"] = ticker
-        info["names"] = [yf_ticker.info.get("longName", None)]
-        short_name = yf_ticker.info.get("shortName", None)
-        if not info["names"] or (short_name and info["names"][0].lower() != short_name.lower()):
-            info["names"].append(short_name.rstrip(" -"))
-
-        info["description"] = yf_ticker.info.get("longBusinessSummary", None)
-        info["industry"] = yf_ticker.info.get("industry", None)
-        info["sector"] = yf_ticker.info.get("sector", None)
-        info["exchanges"] = [yf_ticker.info.get("exchange", None)]
-        if info["exchanges"]:
-            info["exchanges"] = [StocksManagementAPI.get_exchange_name(ex) for ex in info["exchanges"]]
-        info["website"] = yf_ticker.info.get("website", None)
-        info["tags"] = []
-
-        for key in info:
-            if isinstance(info[key], list):
-                info[key] = [el for el in info[key] if el]
-
-        info["names"] = list(set(info["names"]))
-
-        tags = []
-        if info["industry"]:
-            tags.append(info["industry"])
-        if info["sector"]:
-            tags.append(info["sector"])
-        tags = list(set(tags))
-
-        if tags:
-            info["tags"] = tags
-
-        return info
 
     ########
     # APIs #
@@ -175,7 +100,7 @@ class StocksManagementAPI:
             return 200, ticker_document["_source"], "OK"
 
         # Get ticker info
-        ticker_info = StocksManagementAPI.get_info_by_ticker(ticker)
+        ticker_info = yf_get_info_for_ticker(ticker)
         if not ticker_info:
             return 400, {}, "Could not get info for ticker {}".format(ticker)
 
