@@ -24,3 +24,9 @@ if __name__ == '__main__':
 
     # run app
     flask_app.run(threaded=True, debug=(os.getenv("DEPLOYED") == "False"), host="0.0.0.0", port=5000)
+
+# TODO - docstrings, cleanup + authorization in swagger
+# TODO - ensure add stock working
+# TODO - core - investment calculator
+# TODO - portofolio APIs
+# TODO - review all -> backend done

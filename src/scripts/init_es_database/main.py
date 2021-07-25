@@ -4,16 +4,15 @@ Script initializes ES indices. Mappings are specified in es_mappings.py file.
 __version__ = '0.0.1'
 __author__ = 'Szabo Cristian'
 
-from util import config
 from scripts.init_es_database.es_mappings import ES_INDEX_STOCKS_MAPPINGS, ES_INDEX_STOCK_PRICES_MAPPINGS, \
-    ES_INDEX_PORTOFOLIOS_MAPPINGS, ES_INDEX_USER_PORTOFOLIOS_MAPPINGS
+    ES_INDEX_PORTOFOLIOS_MAPPINGS
+from util import config
 from util.elasticsearch.elasticsearch_dbi import ElasticsearchDBI
 from util.logger.logger import Logger
 
 INDEX_MAPPINGS = {config.ES_INDEX_STOCKS: ES_INDEX_STOCKS_MAPPINGS,
                   config.ES_INDEX_STOCK_PRICES: ES_INDEX_STOCK_PRICES_MAPPINGS,
-                  config.ES_INDEX_PORTOFOLIOS: ES_INDEX_PORTOFOLIOS_MAPPINGS,
-                  config.ES_INDEX_USER_PORTOFOLIOS: ES_INDEX_USER_PORTOFOLIOS_MAPPINGS}
+                  config.ES_INDEX_PORTOFOLIOS: ES_INDEX_PORTOFOLIOS_MAPPINGS}
 
 
 def create_indices(recreate=False):
@@ -40,4 +39,4 @@ def create_indices(recreate=False):
 
 
 if __name__ == '__main__':
-    create_indices(recreate=False)
+    create_indices(recreate=True)

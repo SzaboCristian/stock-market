@@ -13,5 +13,4 @@ DATASET_STOCK_PRICES = os.path.join(PROJECT_ROOT, 'data', 'dataset_stock_prices.
 
 ES_INDEX_STOCKS = 'stocks'
 ES_INDEX_STOCK_PRICES = 'stock_prices'
-ES_INDEX_PORTOFOLIOS = 'portofolios'
-ES_INDEX_USER_PORTOFOLIOS = 'user_portofolios'
+ES_INDEX_PORTOFOLIOS = 'user_portofolios'
