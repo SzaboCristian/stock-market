@@ -1,8 +1,6 @@
 import logging
 import os
-from threading import Thread
 
-from webserver.daemons.stock_prices_daemon import stock_prices_updater_task
 from webserver.models.db import db
 from webserver.server import flask_app
 
@@ -16,17 +14,19 @@ if __name__ == '__main__':
     db.app = flask_app
     db.init_app(flask_app)
     db.create_all()
-
+    '''
     # create crcrc inserter polling thread
     stock_prices_updater_thread = Thread(target=stock_prices_updater_task)
     stock_prices_updater_thread.setDaemon(True)
     stock_prices_updater_thread.start()
-
+    '''
     # run app
     flask_app.run(threaded=True, debug=(os.getenv("DEPLOYED") == "False"), host="0.0.0.0", port=5000)
 
 # TODO - docstrings, cleanup + authorization in swagger
 # TODO - ensure add stock working
-# TODO - core - investment calculator
-# TODO - portofolio APIs
+# TODO - webserver logging decorator for routes + save to ES (current_user.public_id, IP, request type, request time etc)
+# TODO - improve daemon
+# TODO - test cases
+# TODO - update db/ use case docs (in docs folder)
 # TODO - review all -> backend done

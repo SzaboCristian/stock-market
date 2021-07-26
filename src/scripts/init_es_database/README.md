@@ -4,5 +4,4 @@
 
 - stocks
 - stock_prices
-- portofolios
 - user_portofolios

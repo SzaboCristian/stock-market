@@ -1,9 +1,11 @@
-import logging
 import time
+from datetime import datetime
 
 from util import config
 from util.elasticsearch.elasticsearch_dbi import ElasticsearchDBI
 from webserver.models.user import User
+
+FIVE_YEARS_TS = int(time.time()) - 5 * 365 * 24 * 3600
 
 
 class PortofolioManagementAPI:
@@ -23,13 +25,15 @@ class PortofolioManagementAPI:
     @staticmethod
     def get_portofolio(user_id, portofolio_id=None) -> tuple:
         """
-        TODO
-        @param user_id:
-        @param portofolio_id:
-        @return:
+        Get portofolio with portofolio_id for specified user. If portofolio id not specified, return all current user
+         portofolios.
+        @param user_id: string
+        @param portofolio_id: strin
+        @return: tuple
         """
+
         if not PortofolioManagementAPI.check_user_exists(user_id):
-            return 400, {}, 'User not found.'
+            return 404, {}, 'User not found.'
 
         es_query = {'query': {'bool': {'must': [{'match': {'user_id': user_id}}]}}}
         if portofolio_id:
@@ -45,20 +49,24 @@ class PortofolioManagementAPI:
     @staticmethod
     def create_portofolio(user_id, allocations, **kwargs) -> tuple:
         """
-        TODO
-        @param user_id:
-        @param allocations:
-        @param kwargs:
-        @return:
+        Create portofolio for user.
+        @param user_id: string
+        @param allocations: list of dicts [{'ticker': <>, 'percentage': <>}]
+        @param kwargs: dict
+        @return: tuple
         """
-        if not PortofolioManagementAPI.check_user_exists(user_id):
-            return 400, {}, 'User not found.'
 
+        if not PortofolioManagementAPI.check_user_exists(user_id):
+            return 404, {}, 'User not found.'
+
+        total_allocation = 0
         for allocation in allocations:
             if allocation.get('ticker', None) is None or allocation.get('percentage', None) is None:
                 return 400, {}, 'Invalid allocation {}'.format(allocation)
-            # TODO - check each ticker exists in db
-            # TODO check total percentage = 100
+            total_allocation += allocation["percentage"]
+
+        if total_allocation != 100:
+            return 400, {}, 'Total allocation percentage must be 100%.'
 
         es_dbi = ElasticsearchDBI.get_instance(config.ELASTICSEARCH_HOST, config.ELASTICSEARCH_PORT)
         portofolio_id = es_dbi.create_document(config.ES_INDEX_PORTOFOLIOS, document={
@@ -76,12 +84,12 @@ class PortofolioManagementAPI:
     @staticmethod
     def update_portofolio(user_id, portofolio_id, allocations, **kwargs) -> tuple:
         """
-        TODO
-        @param user_id:
-        @param portofolio_id:
-        @param allocations:
-        @param kwargs:
-        @return:
+        Update user portofolio.
+        @param user_id: string
+        @param portofolio_id: string
+        @param allocations: list of dicts [{'ticker': <>, 'percentage': <>}]
+        @param kwargs: dict
+        @return: tuple
         """
 
         es_dbi = ElasticsearchDBI.get_instance(config.ELASTICSEARCH_HOST, config.ELASTICSEARCH_PORT)
@@ -110,12 +118,13 @@ class PortofolioManagementAPI:
     @staticmethod
     def delete_portofolio(user_id, portofolio_id) -> tuple:
         """
-
-        @param user_id:
-        @param portofolio_id:
-        @return:
+        Delete user portofolio.
+        @param user_id: string
+        @param portofolio_id: string
+        @return: tuple
         """
 
+        # check portofolio exists
         es_dbi = ElasticsearchDBI.get_instance(config.ELASTICSEARCH_HOST, config.ELASTICSEARCH_PORT)
         portofolio_document = es_dbi.get_document_by_id(config.ES_INDEX_PORTOFOLIOS, _id=portofolio_id)
         if not portofolio_document:
@@ -124,18 +133,85 @@ class PortofolioManagementAPI:
         if portofolio_document["_source"]["user_id"] != user_id:
             return 401, {}, 'Cannot delete other users\' portofolios'
 
+        # delete
         if es_dbi.delete_document(config.ES_INDEX_PORTOFOLIOS, _id=portofolio_id):
             return 200, {}, 'OK'
 
         return 500, {}, 'Could not delete portofolio.'
 
     @staticmethod
-    def backtest_portofolio(portofolio_id, start_ts, ends_ts) -> tuple:
+    def backtest_portofolio(user_id, portofolio_id, start_ts=FIVE_YEARS_TS, ends_ts=int(time.time())) -> tuple:
         """
-        TODO
-        @param portofolio_id:
-        @param start_ts:
-        @param ends_ts:
-        @return:
+        Backtest user portofolio. Default interval 5 years ago - now.
+        @param user_id: string
+        @param portofolio_id: string
+        @param start_ts: int
+        @param ends_ts: int
+        @return: tuple
         """
-        return 200, {}, 'OK'
+
+        # check portofolio exists
+        es_dbi = ElasticsearchDBI.get_instance(config.ELASTICSEARCH_HOST, config.ELASTICSEARCH_PORT)
+        portofolio_document = es_dbi.get_document_by_id(config.ES_INDEX_PORTOFOLIOS, _id=portofolio_id)
+        if not portofolio_document:
+            return 404, {}, 'Portofolio not found.'
+
+        # check portofolio owner
+        if portofolio_document["_source"]["user_id"] != user_id:
+            return 401, {}, 'Cannot backtest other users\' portofolios'
+
+        # get allocations + prices
+        allocations = portofolio_document['_source']['allocations']
+        price_data = {'start_date': datetime.fromtimestamp(start_ts).strftime('%Y-%m-%d'),
+                      'end_date': datetime.fromtimestamp(ends_ts).strftime('%Y-%m-%d'),
+                      'portofolio_data': {}}
+
+        for ticker in {allocation['ticker'] for allocation in allocations}:
+            es_first_price_doc = es_dbi.search_documents(config.ES_INDEX_STOCK_PRICES, query_body={
+                'query': {'bool': {'must': [{'term': {'ticker': ticker.lower()}},
+                                            {'range': {'date': {'gte': start_ts}}}]}},
+                "sort": [
+                    {
+                        "date": {
+                            "order": "asc"
+                        }
+                    }
+                ]
+            }, size=1)
+            es_first_price_doc = es_first_price_doc["hits"]["hits"][0]
+            price_data['portofolio_data'][ticker] = {es_first_price_doc["_source"]["date"]: float(
+                es_first_price_doc["_source"]["close"])}
+
+            es_last_price_doc = es_dbi.search_documents(config.ES_INDEX_STOCK_PRICES, query_body={
+                'query': {'bool': {'must': [{'term': {'ticker': ticker.lower()}},
+                                            {'range': {'date': {'lte': ends_ts}}}]}},
+                "sort": [
+                    {
+                        "date": {
+                            "order": "desc"
+                        }
+                    }
+                ]
+            }, size=1)
+            es_last_price_doc = es_last_price_doc["hits"]["hits"][0]
+            price_data['portofolio_data'][ticker][es_last_price_doc["_source"]["date"]] = float(
+                es_last_price_doc["_source"]["close"])
+
+        # compute return for each holding
+        for ticker in price_data['portofolio_data']:
+            start_ts, end_ts = min(list(price_data['portofolio_data'][ticker].keys())), max(
+                list(price_data['portofolio_data'][ticker].keys()))
+
+            price_data['portofolio_data'][ticker]['return_value_per_share'] = \
+                price_data['portofolio_data'][ticker][end_ts] - price_data['portofolio_data'][ticker][start_ts]
+
+            price_data['portofolio_data'][ticker]['return_percentage'] = \
+                (100 * price_data['portofolio_data'][ticker][end_ts] / price_data['portofolio_data'][ticker][
+                    start_ts]) - 100
+
+        # compute total return
+        price_data["total_return_percentage"] = round(sum(
+            [allocation["percentage"] / 100 * price_data['portofolio_data'][allocation["ticker"]][
+                "return_percentage"] for allocation in allocations]), 2)
+
+        return 200, price_data, 'OK'
