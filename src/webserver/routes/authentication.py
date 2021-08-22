@@ -13,6 +13,7 @@ from flask import request
 from flask_restplus import Resource
 from werkzeug.security import generate_password_hash, check_password_hash
 
+from util.logger.logger import Logger
 from webserver.core.users_management import UsersManagementAPI
 from webserver.flask_rest import FlaskRestPlusApi, FlaskApp
 from webserver.models.user import User
@@ -52,6 +53,7 @@ class RouteLogin(Resource):
         201: "OK",
         401: "Could not verify authorization."
     })
+    @api.doc(security="Basic Auth")
     def post() -> response:
         auth = request.authorization
         if not auth or not auth.username or not auth.password:

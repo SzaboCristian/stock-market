@@ -50,9 +50,9 @@ class FlaskRestPlusApi(RestPlusBaseApi):
     def add_resource(self, cls: Resource, *args):
         self.default_namespace.add_resource(cls, *args)
 
-    def ns(self, name: str, description=None):
+    def ns(self, name: str, description=None, **kwargs):
         if name in self.ns_dict:
             return self.ns_dict[name]
-        _ns = self.namespace(name, path="/", description=description)
+        _ns = self.namespace(name, path="/", description=description, **kwargs)
         self.ns_dict[name] = _ns
         return _ns

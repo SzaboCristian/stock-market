@@ -27,6 +27,7 @@ class RouteUsers(Resource):
         200: "OK",
         404: "User not found."
     })
+    @api.doc(security='apiKey')
     @token_required
     def get(current_user) -> response:
         if not current_user.admin:
@@ -71,6 +72,7 @@ class RouteUsers(Resource):
         400: "Param <> is required",
         404: "User not found."
     })
+    @api.doc(security='apiKey')
     @token_required
     def put(current_user) -> response:
         if not current_user.admin:
@@ -91,6 +93,7 @@ class RouteUsers(Resource):
         400: "Param <> is required",
         404: "User not found."
     })
+    @api.doc(security='apiKey')
     @token_required
     def delete(current_user) -> response:
         if not current_user.admin:

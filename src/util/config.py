@@ -1,6 +1,6 @@
 import os
 
-PROJECT_ROOT = '/home/bmf/Desktop/Webapp_project_finance/stock-market'
+PROJECT_ROOT = '/home/bomfly/Desktop/Webapp_project_finance/stock-market'
 LOG_DIR = os.path.join(PROJECT_ROOT, 'logs')
 
 ELASTICSEARCH_HOST = os.environ.get('ELASTIC_HOST', 'localhost')

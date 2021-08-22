@@ -10,16 +10,30 @@ from webserver.routes.users import RouteUsers
 flask_app = FlaskApp.get_instance()
 flask_api = FlaskRestPlusApi.get_instance()
 
-flask_api.ns('users').add_resource(RouteUsers, "/users")
+authorizations = {
+    'Basic Auth': {
+        'type': 'basic',
+        'in': 'header',
+        'name': 'Authorization'
+    },
+    'apiKey': {
+        'type': 'apiKey',
+        'in': 'header',
+        'name': 'x-access-token'
+    }
+}
 
-flask_api.ns('auth').add_resource(RouteLogin, "/login")
+flask_api.ns('auth', security='Basic Auth', authorizations=authorizations).add_resource(RouteLogin, "/login")
 flask_api.ns('auth').add_resource(RouteRegister, "/register")
 
-flask_api.ns('stocks').add_resource(RouteStocks, "/stocks")
-flask_api.ns('stock_prices').add_resource(RouteStockPrices, "/stock-prices")
+flask_api.ns('stocks', security='apiKey', authorizations=authorizations).add_resource(RouteStocks, "/stocks")
+flask_api.ns('stock_prices', security='apiKey', authorizations=authorizations).add_resource(RouteStockPrices,
+                                                                                            "/stock-prices")
 
-flask_api.ns('portofolio').add_resource(RoutePortofolio, "/portofolio")
-flask_api.ns('portofolio').add_resource(RouteBacktest, "/portofolio/backtest")
+flask_api.ns('portofolio', security='apiKey', authorizations=authorizations).add_resource(RoutePortofolio,
+                                                                                          "/portofolio")
+flask_api.ns('portofolio', security='apiKey', authorizations=authorizations).add_resource(RouteBacktest,
+                                                                                          "/portofolio/backtest")
 
 flask_api.ns('investment-calculator').add_resource(RouteInvestmentCalculatorCompoundInterest,
                                                    "/investment-calculator/compound-interest")

@@ -31,6 +31,7 @@ class RoutePortofolio(Resource):
         200: "OK",
         404: "User not found. | Portofolio not found."
     })
+    @api.doc(security='apiKey')
     @token_required
     def get(current_user) -> response:
         portofolio_id = get_request_parameter(name="portofolio_id", expected_type=str, required=False)
@@ -47,6 +48,7 @@ class RoutePortofolio(Resource):
         404: "User not found.",
         500: "Could not create portofolio."
     })
+    @api.doc(security='apiKey')
     @token_required
     def post(current_user) -> response:
         portofolio_name = get_request_parameter('portofolio_name', required=False, expected_type=str)
@@ -72,6 +74,7 @@ class RoutePortofolio(Resource):
         404: "User not found",
         500: "Could not update portofolio"
     })
+    @api.doc(security='apiKey')
     @token_required
     def put(current_user) -> response:
         portofolio_name = get_request_parameter(name='portofolio_name', required=False, expected_type=str)
@@ -99,6 +102,7 @@ class RoutePortofolio(Resource):
         404: "Portofolio not found",
         500: "Could not delete portofolio"
     })
+    @api.doc(security='apiKey')
     @token_required
     def delete(current_user) -> response:
         portofolio_id, msg = get_request_parameter(name="portofolio_id", expected_type=str, required=True)
@@ -122,6 +126,7 @@ class RouteBacktest(Resource):
         401: 'Cannot backtest other users\' portofolios',
         404: "User not found. | Portofolio not found"
     })
+    @api.doc(security='apiKey')
     @token_required
     def get(current_user) -> response:
         portofolio_id, msg = get_request_parameter(name="portofolio_id", expected_type=str, required=True)
