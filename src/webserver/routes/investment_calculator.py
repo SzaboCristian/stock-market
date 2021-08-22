@@ -15,67 +15,6 @@ from webserver.routes.utils import api_param_query, get_request_parameter
 api = FlaskRestPlusApi.get_instance()
 
 
-class RouteInvestmentCalculatorReturnRate(Resource):
-
-    @staticmethod
-    @api.doc(params={
-        "starting_amount": api_param_query(required=True,
-                                           description="Starting amount in USD",
-                                           type="integer"),
-        "target": api_param_query(required=True,
-                                  description="Target amount"),
-        "investment_length_in_years": api_param_query(required=True,
-                                                      description="Investment length: int",
-                                                      type="integer"),
-        "additional_yearly_contribution": api_param_query(required=False,
-                                                          description="Additional contribution",
-                                                          type="integer",
-                                                          default=0),
-        'additional_at_end_of_year': api_param_query(required=False,
-                                                     description="Compound at the end of the year flag.",
-                                                     type="boolean",
-                                                     default=True),
-    }
-    )
-    @api.doc(responses={
-        200: "OK",
-        400: "Param <> is required"
-    })
-    def get() -> response:
-        starting_amount, msg = get_request_parameter("starting_amount", expected_type=int, required=True)
-        if starting_amount is None:
-            return response_400(msg)
-
-        target, msg = get_request_parameter("target", expected_type=int, required=True)
-        if target is None:
-            return response_400(msg)
-
-        investment_length_in_years, msg = get_request_parameter("investment_length_in_years", expected_type=int,
-                                                                required=True)
-        if investment_length_in_years is None:
-            return response_400(msg)
-        if investment_length_in_years < 1:
-            return response_400("Investment length must be greater or equal to 1")
-
-        additional_yearly_contribution = get_request_parameter("additional_yearly_contribution", expected_type=int,
-                                                               required=False)
-        if additional_yearly_contribution is None:
-            additional_yearly_contribution = 0
-
-        additional_at_end_of_year = get_request_parameter("additional_at_end_of_year", expected_type=bool,
-                                                          required=False)
-        if additional_at_end_of_year is None:
-            additional_at_end_of_year = True
-
-        return response(*InvestmentCalculatorAPI.compute_return_rate(
-            starting_amount=starting_amount,
-            target=target,
-            investment_length_in_years=investment_length_in_years,
-            additional_yearly_contribution=additional_yearly_contribution,
-            additional_at_end_of_year=additional_at_end_of_year
-        ))
-
-
 class RouteInvestmentCalculatorCompoundInterest(Resource):
     @staticmethod
     @api.doc(params={

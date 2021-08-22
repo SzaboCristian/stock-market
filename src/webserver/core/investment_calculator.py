@@ -33,27 +33,3 @@ class InvestmentCalculatorAPI:
             "additional_contribution": investment_length_in_years * additional_yearly_contribution,
             "compound_interest": compound_interest,
             "final_amount": final_amount}, "OK"
-
-    @staticmethod
-    def compute_return_rate(target, starting_amount, investment_length_in_years, additional_yearly_contribution=0,
-                            additional_at_end_of_year=True):
-        """
-        TODO
-        @param target:
-        @param starting_amount:
-        @param investment_length_in_years:
-        @param additional_yearly_contribution:
-        @param additional_at_end_of_year:
-        @return:
-        """
-
-        # TODO
-        if not additional_yearly_contribution:
-            ror = 'UNIMPLEMENTED'
-        else:
-            ror = 'UNIMPLEMENTED'
-
-        return 200, {"starting_amount": starting_amount,
-                     "target": target,
-                     "investment_length_in_years": investment_length_in_years,
-                     "return_rate": ror}, "OK"

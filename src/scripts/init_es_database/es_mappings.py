@@ -118,9 +118,18 @@ ES_INDEX_STOCK_PRICES_MAPPINGS = {
 ES_INDEX_PORTOFOLIOS_MAPPINGS = {
     "mappings": {
         "properties": {
+            "portofolio_name": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
             "allocations": {
                 "properties": {
-                    "allocation": {
+                    "percentage": {
                         "type": "float"
                     },
                     "ticker": {
@@ -148,22 +157,6 @@ ES_INDEX_PORTOFOLIOS_MAPPINGS = {
             },
             "last_modified_timestamp": {
                 "type": "long"
-            }
-        }
-    }
-}
-
-ES_INDEX_USER_PORTOFOLIOS_MAPPINGS = {
-    "mappings": {
-        "properties": {
-            "portofolio_ids": {
-                "type": "text",
-                "fields": {
-                    "keyword": {
-                        "type": "keyword",
-                        "ignore_above": 256
-                    }
-                }
             }
         }
     }

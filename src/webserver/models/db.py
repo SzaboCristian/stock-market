@@ -1,3 +1,7 @@
+"""
+Singleton SQLAlchemy wrapper class.
+"""
+
 from flask_sqlalchemy import SQLAlchemy
 
 

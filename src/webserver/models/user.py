@@ -1,3 +1,7 @@
+"""
+Flask-SQLAlchmey model classes.
+"""
+
 from webserver.models.db import db
 
 

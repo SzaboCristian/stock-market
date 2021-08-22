@@ -69,7 +69,7 @@ class RouteLogin(Resource):
 
         token = jwt.encode(
             {'public_id': user.public_id,
-             'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)},
+             'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60)},
             app.config["SECRET_KEY"])
 
         return response(201, {'token': token.decode('UTF-8')}, 'OK')
