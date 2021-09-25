@@ -25,8 +25,8 @@ def fails_safe_request(func):
 def webserver_logger(func):
     @wraps(func)
     def decorated(*args, **kwargs):
-        logger = Logger.get_logger("webserver_logger", config.DOCKER_WEB_REQUESTS_LOGS_FILEPATH)
         Logger.LOG_DIR = config.DOCKER_LOG_DIR
+        logger = Logger.get_logger("webserver_logger", config.DOCKER_WEB_REQUESTS_LOGS_FILENAME)
 
         client_ip = request.access_route[-1]
         if client_ip in config.NO_LOG_IPS:

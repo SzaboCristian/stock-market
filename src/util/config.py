@@ -16,6 +16,6 @@ ES_INDEX_STOCK_PRICES = "stock_prices"
 ES_INDEX_PORTOFOLIOS = "user_portofolios"
 
 DOCKER_LOG_DIR = "/usr/flask-app/logs"
-DOCKER_WEB_REQUESTS_LOGS_FILEPATH = "/usr/flask-app/logs/webserver_requests.log"
+DOCKER_WEB_REQUESTS_LOGS_FILENAME = "webserver_requests.log"
 NO_LOG_IPS = []
-#NO_LOG_IPS = ["127.0.0.1"]
+# NO_LOG_IPS = ["127.0.0.1"]
