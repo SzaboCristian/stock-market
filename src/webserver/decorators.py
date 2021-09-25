@@ -9,7 +9,7 @@ from util import config
 from util.logger.logger import Logger
 
 
-def failsafe(func):
+def fails_safe_request(func):
     @wraps(func)
     def decorated(*args, **kwargs):
         result = 500, [], "Server error. Please contact administrator."

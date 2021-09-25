@@ -1,10 +1,10 @@
-from webserver.decorators import failsafe
+from webserver.decorators import fails_safe_request
 
 
 class InvestmentCalculatorAPI:
 
     @staticmethod
-    @failsafe
+    @fails_safe_request
     def compute_compound_interest(starting_amount, yearly_return_rate, investment_length_in_years,
                                   additional_yearly_contribution=0, additional_at_end_of_year=True) -> tuple:
         """

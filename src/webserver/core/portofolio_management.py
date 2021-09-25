@@ -3,7 +3,7 @@ from datetime import datetime
 
 from util import config
 from util.elasticsearch.elasticsearch_dbi import ElasticsearchDBI
-from webserver.decorators import failsafe
+from webserver.decorators import fails_safe_request
 from webserver.models.user import User
 
 FIVE_YEARS_TS = int(time.time()) - 5 * 365 * 24 * 3600
@@ -24,7 +24,7 @@ class PortofolioManagementAPI:
         return True
 
     @staticmethod
-    @failsafe
+    @fails_safe_request
     def get_portofolio(user_id, portofolio_id=None) -> tuple:
         """
         Get portofolio with portofolio_id for specified user. If portofolio id not specified, return all current user
@@ -49,7 +49,7 @@ class PortofolioManagementAPI:
         return 404, {}, 'Portofolio not found.'
 
     @staticmethod
-    @failsafe
+    @fails_safe_request
     def create_portofolio(user_id, allocations, **kwargs) -> tuple:
         """
         Create portofolio for user.
@@ -85,7 +85,7 @@ class PortofolioManagementAPI:
         return 500, {}, 'Could not create portofolio.'
 
     @staticmethod
-    @failsafe
+    @fails_safe_request
     def update_portofolio(user_id, portofolio_id, allocations, **kwargs) -> tuple:
         """
         Update user portofolio.
@@ -120,7 +120,7 @@ class PortofolioManagementAPI:
         return 500, {}, 'Could not update portofolio.'
 
     @staticmethod
-    @failsafe
+    @fails_safe_request
     def delete_portofolio(user_id, portofolio_id) -> tuple:
         """
         Delete user portofolio.
@@ -145,7 +145,7 @@ class PortofolioManagementAPI:
         return 500, {}, 'Could not delete portofolio.'
 
     @staticmethod
-    @failsafe
+    @fails_safe_request
     def backtest_portofolio(user_id, portofolio_id, start_ts=FIVE_YEARS_TS, ends_ts=int(time.time())) -> tuple:
         """
         Backtest user portofolio. Default interval 5 years ago - now.
