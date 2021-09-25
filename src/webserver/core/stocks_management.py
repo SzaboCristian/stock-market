@@ -8,6 +8,7 @@ __author__ = "Szabo Cristian"
 from util import config
 from util.elasticsearch.elasticsearch_dbi import ElasticsearchDBI
 from util.utils import EXCHANGE_NAMES, yf_get_info_for_ticker
+from webserver.decorators import failsafe
 
 
 class StocksManagementAPI:
@@ -17,6 +18,7 @@ class StocksManagementAPI:
     ########
 
     @staticmethod
+    @failsafe
     def get_stocks(ticker=None, company_name=None, sector=None, industry=None, tags=None, exchange=None,
                    legal_type=None, ticker_only=False) -> tuple:
         """
@@ -82,6 +84,7 @@ class StocksManagementAPI:
         return 200, search_results, "OK"
 
     @staticmethod
+    @failsafe
     def add_stock(ticker) -> tuple:
         """
         Get ticker info and index to Elasticsearch stocks index. Flask server daemon stock_prices_daemon will index
@@ -113,6 +116,7 @@ class StocksManagementAPI:
         return 201, ticker_info, "OK"
 
     @staticmethod
+    @failsafe
     def update_stock_info(ticker, updated_info) -> tuple:
         """
         Update ticker info with given updated_info.
@@ -135,6 +139,7 @@ class StocksManagementAPI:
         return 200, True, "OK"
 
     @staticmethod
+    @failsafe
     def delete_stock(ticker) -> tuple:
         """
         Delete stock and price history for specified ticker.

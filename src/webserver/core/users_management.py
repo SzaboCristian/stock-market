@@ -2,6 +2,7 @@ import uuid
 
 from sqlalchemy.exc import IntegrityError
 
+from webserver.decorators import failsafe
 from webserver.models.db import db
 from webserver.models.user import User
 
@@ -9,6 +10,7 @@ from webserver.models.user import User
 class UsersManagementAPI:
 
     @staticmethod
+    @failsafe
     def get_users(public_id=None):
         if not public_id:
             users = User.query.all()
@@ -25,6 +27,7 @@ class UsersManagementAPI:
         return 404, {}, 'User not found.'
 
     @staticmethod
+    @failsafe
     def create_user(username, hashed_password):
         try:
             new_user = User(public_id=str(uuid.uuid4()), username=username, password=hashed_password, admin=False)
@@ -37,6 +40,7 @@ class UsersManagementAPI:
             return 500, {}, 'Could not create user.'
 
     @staticmethod
+    @failsafe
     def promote_user(public_id):
         user = User.query.filter_by(public_id=public_id).first()
         if not user:
@@ -46,6 +50,7 @@ class UsersManagementAPI:
         return 200, {'message': 'User {} promoted'.format(public_id)}, 'OK'
 
     @staticmethod
+    @failsafe
     def delete_use(public_id):
         user = User.query.filter_by(public_id=public_id).first()
         if not user:

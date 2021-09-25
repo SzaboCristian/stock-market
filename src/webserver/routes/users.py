@@ -8,6 +8,7 @@ __author__ = "Szabo Cristian"
 from flask_restplus import Resource
 from werkzeug.security import generate_password_hash
 
+from webserver import decorators
 from webserver.core.users_management import UsersManagementAPI
 from webserver.flask_rest import FlaskRestPlusApi
 from webserver.responses import response_400, response
@@ -18,6 +19,8 @@ api = FlaskRestPlusApi.get_instance()
 
 
 class RouteUsers(Resource):
+    method_decorators = [decorators.webserver_logger]
+
 
     @staticmethod
     @api.doc(params={

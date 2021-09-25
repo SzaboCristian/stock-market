@@ -192,7 +192,6 @@ class Logger:
         @param flush: boolean
         @param line_end: string
         @return: None
-        @return:
         """
         Logger.__log(LoggerMessageType.ERROR, message, flush, line_end)
         Logger.__log(LoggerMessageType.ERROR, traceback.format_exc(), flush, line_end)

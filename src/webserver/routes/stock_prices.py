@@ -9,6 +9,7 @@ import time
 
 from flask_restplus import Resource
 
+from webserver import decorators
 from webserver.core.stock_prices_management import StockPricesManagementAPI
 from webserver.flask_rest import FlaskRestPlusApi
 from webserver.responses import response_400, response
@@ -19,6 +20,7 @@ api = FlaskRestPlusApi.get_instance()
 
 
 class RouteStockPrices(Resource):
+    method_decorators = [decorators.webserver_logger]
 
     @staticmethod
     @api.doc(params={

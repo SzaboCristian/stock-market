@@ -7,6 +7,7 @@ __author__ = "Szabo Cristian"
 
 from flask_restplus import Resource
 
+from webserver import decorators
 from webserver.core.stocks_management import StocksManagementAPI
 from webserver.flask_rest import FlaskRestPlusApi
 from webserver.responses import response_400, response
@@ -17,6 +18,8 @@ api = FlaskRestPlusApi.get_instance()
 
 
 class RouteStocks(Resource):
+    method_decorators = [decorators.webserver_logger]
+
 
     @staticmethod
     @api.doc(params={
