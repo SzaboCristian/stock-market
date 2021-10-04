@@ -35,7 +35,7 @@ class Logger:
     LOGGER_INSTANCES = {}
 
     @staticmethod
-    def get_logger(logger_name, file_name=None, no_stdout=False) -> object:
+    def get_logger(logger_name, file_name=None, no_stdout=False) -> logging.Logger:
         """
         Create logger api_instance with specified logger_name. Logger will write to file specified by file_name in current
         directory and stdout. If logging to stdout is not needed, set no_stdout to True.

@@ -21,7 +21,6 @@ api = FlaskRestPlusApi.get_instance()
 class RouteUsers(Resource):
     method_decorators = [decorators.webserver_logger]
 
-
     @staticmethod
     @api.doc(params={
         "public_id": api_param_query(required=False, description="User id")

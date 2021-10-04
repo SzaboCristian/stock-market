@@ -24,9 +24,3 @@ if __name__ == '__main__':
 
     # run app
     flask_app.run(threaded=True, debug=(os.getenv("DEPLOYED") == "False"), host="0.0.0.0", port=5000)
-
-# TODO - map log dir to host
-# TODO - improve daemon
-# TODO - test cases
-# TODO - update db/ use case docs (in docs folder)
-# TODO - review all -> backend done

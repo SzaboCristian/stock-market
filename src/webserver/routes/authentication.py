@@ -49,7 +49,6 @@ def token_required(f):
 class RouteLogin(Resource):
     method_decorators = [decorators.webserver_logger]
 
-
     @staticmethod
     @api.doc(responses={
         201: "OK",
@@ -81,7 +80,6 @@ class RouteLogin(Resource):
 
 class RouteRegister(Resource):
     method_decorators = [decorators.webserver_logger]
-
 
     @staticmethod
     @api.doc(params={

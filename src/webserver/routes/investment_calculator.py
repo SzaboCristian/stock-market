@@ -74,5 +74,4 @@ class RouteInvestmentCalculatorCompoundInterest(Resource):
             yearly_return_rate=yearly_return_rate,
             investment_length_in_years=investment_length_in_years,
             additional_yearly_contribution=additional_yearly_contribution,
-            additional_at_end_of_year=additional_at_end_of_year
-        ))
+            additional_at_end_of_year=additional_at_end_of_year))

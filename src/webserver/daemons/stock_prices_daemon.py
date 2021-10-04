@@ -25,7 +25,7 @@ def markets_closed_the_day_before() -> bool:
     return datetime.today().weekday() in [0, 6]
 
 
-def are_markets_open() -> bool:
+def are_any_markets_open() -> bool:
     """
     Most markets are closed between 00:00 - 08:00 (Europe time) and on weekends.
     @return: boolean
@@ -38,7 +38,7 @@ def should_update_stock_prices() -> bool:
         Logger.info("Markets were closed the day before. No new price info to be found.")
         return False
 
-    if are_markets_open():
+    if are_any_markets_open():
         Logger.info("Markets are still open, waiting to close in order to update prices.")
         return False
 

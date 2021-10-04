@@ -4,7 +4,6 @@ from webserver.routes.investment_calculator import RouteInvestmentCalculatorComp
 from webserver.routes.portofolios import RoutePortofolio, RouteBacktest
 from webserver.routes.stock_prices import RouteStockPrices
 from webserver.routes.stocks import RouteStocks
-from webserver.routes.users import RouteUsers
 
 # create flask app
 flask_app = FlaskApp.get_instance()

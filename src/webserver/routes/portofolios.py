@@ -24,7 +24,6 @@ FIVE_YEARS_TS = int(time.time()) - 5 * 365 * 24 * 3600
 class RoutePortofolio(Resource):
     method_decorators = [decorators.webserver_logger]
 
-
     @staticmethod
     @api.doc(params={
         "portofolio_id": api_param_query(required=False,

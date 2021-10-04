@@ -20,7 +20,6 @@ api = FlaskRestPlusApi.get_instance()
 class RouteStocks(Resource):
     method_decorators = [decorators.webserver_logger]
 
-
     @staticmethod
     @api.doc(params={
         "ticker": api_param_query(required=False,
