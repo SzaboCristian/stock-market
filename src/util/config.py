@@ -1,5 +1,17 @@
 import os
 
+
+def load_env():
+    try:
+        from dotenv import load_dotenv
+
+        load_dotenv(verbose=False,
+                    dotenv_path=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"))
+        print("Loaded .env")
+    except Exception as e:
+        print("Could not load dot .env file [{}]".format(str(e)))
+
+
 PROJECT_ROOT = "/home/bomfly/Desktop/Webapp_project_finance/stock-market"
 LOG_DIR = os.path.join(PROJECT_ROOT, "logs")
 
@@ -17,5 +29,4 @@ ES_INDEX_PORTOFOLIOS = "user_portofolios"
 
 DOCKER_LOG_DIR = "/usr/flask-app/logs"
 DOCKER_WEB_REQUESTS_LOGS_FILENAME = "webserver_requests.log"
-NO_LOG_IPS = []
-# NO_LOG_IPS = ["127.0.0.1"]
+NO_LOG_IPS = ["127.0.0.1"]

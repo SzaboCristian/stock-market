@@ -26,7 +26,7 @@ flask_api.ns('auth', security='Basic Auth', authorizations=authorizations).add_r
 flask_api.ns('auth').add_resource(RouteRegister, "/register")
 
 flask_api.ns('stocks', security='apiKey', authorizations=authorizations).add_resource(RouteStocks, "/stocks")
-flask_api.ns('stock_prices', security='apiKey', authorizations=authorizations).add_resource(RouteStockPrices,
+flask_api.ns('stock-prices', security='apiKey', authorizations=authorizations).add_resource(RouteStockPrices,
                                                                                             "/stock-prices")
 
 flask_api.ns('portofolio', security='apiKey', authorizations=authorizations).add_resource(RoutePortofolio,

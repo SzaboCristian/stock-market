@@ -1,3 +1,8 @@
+from gevent import monkey
+
+# monkey patch all standard libs
+monkey.patch_all()
+
 import logging
 import os
 from threading import Thread
@@ -22,5 +27,5 @@ if __name__ == '__main__':
     stock_prices_updater_thread.setDaemon(True)
     stock_prices_updater_thread.start()
 
-    # run app
+    # run app - only when run without gunicorn
     flask_app.run(threaded=True, debug=(os.getenv("DEPLOYED") == "False"), host="0.0.0.0", port=5000)

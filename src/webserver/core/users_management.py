@@ -11,7 +11,7 @@ class UsersManagementAPI:
 
     @staticmethod
     @fails_safe_request
-    def get_users(public_id=None):
+    def get_users(public_id=None) -> tuple:
         if not public_id:
             users = User.query.all()
             users = [{'public_id': user.public_id, 'username': user.username, 'password': user.password,
@@ -28,7 +28,7 @@ class UsersManagementAPI:
 
     @staticmethod
     @fails_safe_request
-    def create_user(username, hashed_password):
+    def create_user(username, hashed_password) -> tuple:
         try:
             new_user = User(public_id=str(uuid.uuid4()), username=username, password=hashed_password, admin=False)
             db.session.add(new_user)
@@ -41,7 +41,7 @@ class UsersManagementAPI:
 
     @staticmethod
     @fails_safe_request
-    def promote_user(public_id):
+    def promote_user(public_id) -> tuple:
         user = User.query.filter_by(public_id=public_id).first()
         if not user:
             return 404, {}, 'User not found.'
@@ -51,7 +51,7 @@ class UsersManagementAPI:
 
     @staticmethod
     @fails_safe_request
-    def delete_use(public_id):
+    def delete_use(public_id) -> tuple:
         user = User.query.filter_by(public_id=public_id).first()
         if not user:
             return 404, {}, 'User not found.'

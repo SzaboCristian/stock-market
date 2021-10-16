@@ -8,3 +8,6 @@ flask-restplus==0.13.0
 Flask-SQLAlchemy==2.5.1
 SQLAlchemy~=1.4.22
 pyjwt~=1.7.1
+gevent==21.8.0
+gunicorn==20.1.0
+python-dotenv==0.19.1
