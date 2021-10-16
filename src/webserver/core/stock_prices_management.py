@@ -112,6 +112,8 @@ class StockPricesManagementAPI:
         if actions:
             es_dbi.bulk(actions, chunk_size=len(actions), max_retries=3)
 
+        es_dbi.refresh_index(config.ES_INDEX_STOCK_PRICES)
+
         return 200, prices, "OK"
 
     @staticmethod
@@ -148,5 +150,7 @@ class StockPricesManagementAPI:
                 actions = actions[1000:]
             else:
                 actions = []
+
+        es_dbi.refresh_index(config.ES_INDEX_STOCK_PRICES)
 
         return 200, True, "OK"

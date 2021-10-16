@@ -107,6 +107,18 @@ class ElasticsearchDBI:
         self.__es.indices.create(index=index, body=mappings)
         return True
 
+    def refresh_index(self, index) -> bool:
+        """
+        @param index: string
+        @return: boolean
+        """
+        if not self.index_exists(index):
+            Logger.warning("Index {0} does not exist".format(index))
+            return False
+
+        self.__es.indices.refresh(index=[index])
+        return True
+
     def delete_index(self, index) -> bool:
         """
         @param index: string
