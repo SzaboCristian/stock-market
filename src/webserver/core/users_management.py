@@ -3,8 +3,8 @@ import uuid
 from sqlalchemy.exc import IntegrityError
 
 from webserver.decorators import fails_safe_request
-from webserver.models.db import db
-from webserver.models.user import User
+from webserver.model.db import db
+from webserver.model.user import User
 
 
 class UsersManagementAPI:

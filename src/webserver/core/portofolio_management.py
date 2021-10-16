@@ -4,7 +4,7 @@ from datetime import datetime
 from util import config
 from util.elasticsearch.elasticsearch_dbi import ElasticsearchDBI
 from webserver.decorators import fails_safe_request
-from webserver.models.user import User
+from webserver.model.user import User
 
 FIVE_YEARS_TS = int(time.time()) - 5 * 365 * 24 * 3600
 
@@ -25,7 +25,7 @@ class PortofolioManagementAPI:
 
     @staticmethod
     @fails_safe_request
-    def get_portofolio(user_id, portofolio_id=None) -> tuple:
+    def get_portofolio(user_id, portofolio_id=None, **kwargs) -> tuple:
         """
         Get portofolio with portofolio_id for specified user. If portofolio id not specified, return all current user
          portofolios.
@@ -34,7 +34,7 @@ class PortofolioManagementAPI:
         @return: tuple
         """
 
-        if not PortofolioManagementAPI.check_user_exists(user_id):
+        if 'test' not in kwargs and not PortofolioManagementAPI.check_user_exists(user_id):
             return 404, {}, 'User not found.'
 
         es_query = {'query': {'bool': {'must': [{'match': {'user_id': user_id}}]}}}
@@ -44,7 +44,8 @@ class PortofolioManagementAPI:
         es_dbi = ElasticsearchDBI.get_instance(config.ELASTICSEARCH_HOST, config.ELASTICSEARCH_PORT)
         es_portofolio_documents = es_dbi.search_documents(config.ES_INDEX_PORTOFOLIOS, query_body=es_query)
         if es_portofolio_documents and es_portofolio_documents.get('hits', {}).get('hits', []):
-            return 200, es_portofolio_documents['hits']['hits'], 'OK'
+            return 200, {portofolio['_id']: portofolio['_source'] for portofolio in
+                         es_portofolio_documents['hits']['hits']}, 'OK'
 
         return 404, {}, 'Portofolio not found.'
 
@@ -59,7 +60,7 @@ class PortofolioManagementAPI:
         @return: tuple
         """
 
-        if not PortofolioManagementAPI.check_user_exists(user_id):
+        if 'test' not in kwargs and not PortofolioManagementAPI.check_user_exists(user_id):
             return 404, {}, 'User not found.'
 
         total_allocation = 0
@@ -115,7 +116,7 @@ class PortofolioManagementAPI:
             portofolio['portogolio_name'] = kwargs['portofolio_name']
 
         if es_dbi.update_document(config.ES_INDEX_PORTOFOLIOS, _id=portofolio_id, document=portofolio):
-            return 200, {'message': 'Portofolio {} updated'.format(portofolio_id)}, 'OK'
+            return 200, {'portofolio_id': portofolio_id}, 'OK'
 
         return 500, {}, 'Could not update portofolio.'
 

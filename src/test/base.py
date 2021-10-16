@@ -7,13 +7,13 @@ class InterfaceTestAPI(ABC):
     """
 
     @abstractmethod
-    def test_missing_params(self):
+    def test_missing_params(self) -> None:
         pass
 
     @abstractmethod
-    def test_bad_params(self):
+    def test_bad_params(self) -> None:
         pass
 
     @abstractmethod
-    def test_valid_params(self):
+    def test_valid_params(self) -> None:
         pass

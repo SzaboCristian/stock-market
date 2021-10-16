@@ -16,7 +16,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from webserver import decorators
 from webserver.core.users_management import UsersManagementAPI
 from webserver.flask_rest import FlaskRestPlusApi, FlaskApp
-from webserver.models.user import User
+from webserver.model.user import User
 from webserver.responses import response_400, response
 from webserver.routes.utils import api_param_form, get_request_parameter
 

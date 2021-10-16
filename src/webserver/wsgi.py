@@ -8,7 +8,7 @@ import os
 from threading import Thread
 
 from webserver.daemons.stock_prices_daemon import stock_prices_updater_task
-from webserver.models.db import db
+from webserver.model.db import db
 from webserver.server import flask_app
 
 # setup logger
