@@ -1,9 +1,9 @@
 import time
-from datetime import datetime
 
 from util import config
 from util.elasticsearch.elasticsearch_dbi import ElasticsearchDBI
 from webserver.decorators import fails_safe_request
+from webserver.model.portofolio import Portofolio, PortofolioException, AllocationException, Allocation
 from webserver.model.user import User
 
 FIVE_YEARS_TS = int(time.time()) - 5 * 365 * 24 * 3600
@@ -28,9 +28,10 @@ class PortofolioManagementAPI:
     def get_portofolio(user_id, portofolio_id=None, **kwargs) -> tuple:
         """
         Get portofolio with portofolio_id for specified user. If portofolio id not specified, return all current user
-         portofolios.
+        portofolios. No need for portofolio validation as they were alreay validated on creation/update.
         @param user_id: string
-        @param portofolio_id: strin
+        @param portofolio_id: string
+        @param kwargs: dict
         @return: tuple
         """
 
@@ -63,22 +64,26 @@ class PortofolioManagementAPI:
         if 'test' not in kwargs and not PortofolioManagementAPI.check_user_exists(user_id):
             return 404, {}, 'User not found.'
 
-        total_allocation = 0
+        # porotofolio validation
+        allocation_objects = []
         for allocation in allocations:
-            if allocation.get('ticker', None) is None or allocation.get('percentage', None) is None:
-                return 400, {}, 'Invalid allocation {}'.format(allocation)
-            total_allocation += allocation["percentage"]
+            try:
+                allocation_objects.append(Allocation(allocation_json=allocation))
+            except AllocationException:
+                return 400, "Invalid allocation {}".format(allocation)
 
-        if total_allocation != 100:
-            return 400, {}, 'Total allocation percentage must be 100%.'
+        try:
+            portofolio = Portofolio(portofolio_json={
+                'portofolio_name': kwargs.get('portofolio_name', 'user_portofolio_default'),
+                'created_timestamp': int(time.time()),
+                'modified_timestamp': int(time.time()),
+                'user_id': user_id,
+                'allocations': allocation_objects})
+        except PortofolioException as e:
+            return 400, {}, str(e)
 
         es_dbi = ElasticsearchDBI.get_instance(config.ELASTICSEARCH_HOST, config.ELASTICSEARCH_PORT)
-        portofolio_id = es_dbi.create_document(config.ES_INDEX_PORTOFOLIOS, document={
-            'portofolio_name': kwargs.get('portofolio_name', 'user_portofolio_default'),
-            'created_timestamp': int(time.time()),
-            'modified_timestamp': int(time.time()),
-            'user_id': user_id,
-            'allocations': allocations})
+        portofolio_id = es_dbi.create_document(config.ES_INDEX_PORTOFOLIOS, document=portofolio.get_data())
 
         if portofolio_id:
             return 200, {'portofolio_id': portofolio_id}, 'OK'
@@ -87,12 +92,12 @@ class PortofolioManagementAPI:
 
     @staticmethod
     @fails_safe_request
-    def update_portofolio(user_id, portofolio_id, allocations, **kwargs) -> tuple:
+    def update_portofolio(user_id, portofolio_id, new_allocations, **kwargs) -> tuple:
         """
         Update user portofolio.
         @param user_id: string
         @param portofolio_id: string
-        @param allocations: list of dicts [{'ticker': <>, 'percentage': <>}]
+        @param new_allocations: list of dicts [{'ticker': <>, 'percentage': <>}]
         @param kwargs: dict
         @return: tuple
         """
@@ -105,20 +110,76 @@ class PortofolioManagementAPI:
         if portofolio_document["_source"]["user_id"] != user_id:
             return 401, {}, 'Cannot update other users\' portofolios'
 
-        for allocation in allocations:
-            if allocation.get('ticker', None) is None or allocation.get('percentage', None) is None:
-                return 400, {}, 'Invalid allocation {}'.format(allocation)
+        # updated data validation
+        new_allocation_objects = []
+        for new_allocation in new_allocations:
+            try:
+                new_allocation_objects.append(Allocation(allocation_json=new_allocation))
+            except AllocationException:
+                return 400, "Invalid allocation {}".format(new_allocation)
 
-        portofolio = portofolio_document['_source']
-        portofolio['allocations'] = allocations
-        portofolio['modified_timestamp']: int(time.time())
+        # updated portofolio validation + validation
+        try:
+            portofolio = Portofolio(portofolio_json={
+                'portofolio_name': portofolio_document["_source"].get("portofolio_name", None),
+                'created_timestamp': portofolio_document["_source"].get("created_timestamp", None),
+                'modified_timestamp': portofolio_document["_source"].get("modified_timestamp", None),
+                'user_id': portofolio_document["_source"].get("user_id", None),
+                'allocations': new_allocation_objects})
+        except PortofolioException as e:
+            return 400, {}, str(e)
+
+        portofolio.set_modified_timestamp(int(time.time()))
         if kwargs.get('portofolio_name', None):
-            portofolio['portogolio_name'] = kwargs['portofolio_name']
+            portofolio.set_portofolio_name(kwargs['portofolio_name'])
 
-        if es_dbi.update_document(config.ES_INDEX_PORTOFOLIOS, _id=portofolio_id, document=portofolio):
+        if es_dbi.update_document(config.ES_INDEX_PORTOFOLIOS, _id=portofolio_id, document=portofolio.get_data()):
             return 200, {'portofolio_id': portofolio_id}, 'OK'
 
         return 500, {}, 'Could not update portofolio.'
+
+    @staticmethod
+    @fails_safe_request
+    def backtest_portofolio(user_id, portofolio_id, start_ts=FIVE_YEARS_TS, ends_ts=int(time.time())) -> tuple:
+        """
+        Backtest user portofolio. Default interval 5 years ago - now.
+        @param user_id: string
+        @param portofolio_id: string
+        @param start_ts: int
+        @param ends_ts: int
+        @return: tuple
+        """
+
+        # check portofolio exists
+        es_dbi = ElasticsearchDBI.get_instance(config.ELASTICSEARCH_HOST, config.ELASTICSEARCH_PORT)
+        portofolio_document = es_dbi.get_document_by_id(config.ES_INDEX_PORTOFOLIOS, _id=portofolio_id)
+        if not portofolio_document:
+            return 404, {}, 'Portofolio not found.'
+
+        # check portofolio owner
+        if portofolio_document["_source"]["user_id"] != user_id:
+            return 401, {}, 'Cannot backtest other users\' portofolios'
+
+        # setup alloation objects
+        allocation_objects = []
+        for allocation in portofolio_document['_source']['allocations']:
+            try:
+                allocation_objects.append(Allocation(allocation_json=allocation))
+            except AllocationException:
+                return 400, "Invalid allocation {}".format(allocation)
+
+        # setup portofolio object
+        try:
+            portofolio = Portofolio(portofolio_json={
+                'portofolio_name': portofolio_document["_source"].get("portofolio_name", None),
+                'created_timestamp': portofolio_document["_source"].get("created_timestamp", None),
+                'modified_timestamp': portofolio_document["_source"].get("modified_timestamp", None),
+                'user_id': portofolio_document["_source"].get("user_id", None),
+                'allocations': allocation_objects})
+        except PortofolioException as e:
+            return 400, {}, str(e)
+
+        return 200, portofolio.backtest(es_dbi=es_dbi, start_ts=start_ts, end_ts=ends_ts), 'OK'
 
     @staticmethod
     @fails_safe_request
@@ -144,81 +205,3 @@ class PortofolioManagementAPI:
             return 200, {}, 'OK'
 
         return 500, {}, 'Could not delete portofolio.'
-
-    @staticmethod
-    @fails_safe_request
-    def backtest_portofolio(user_id, portofolio_id, start_ts=FIVE_YEARS_TS, ends_ts=int(time.time())) -> tuple:
-        """
-        Backtest user portofolio. Default interval 5 years ago - now.
-        @param user_id: string
-        @param portofolio_id: string
-        @param start_ts: int
-        @param ends_ts: int
-        @return: tuple
-        """
-
-        # check portofolio exists
-        es_dbi = ElasticsearchDBI.get_instance(config.ELASTICSEARCH_HOST, config.ELASTICSEARCH_PORT)
-        portofolio_document = es_dbi.get_document_by_id(config.ES_INDEX_PORTOFOLIOS, _id=portofolio_id)
-        if not portofolio_document:
-            return 404, {}, 'Portofolio not found.'
-
-        # check portofolio owner
-        if portofolio_document["_source"]["user_id"] != user_id:
-            return 401, {}, 'Cannot backtest other users\' portofolios'
-
-        # get allocations + prices
-        allocations = portofolio_document['_source']['allocations']
-        price_data = {'start_date': datetime.fromtimestamp(start_ts).strftime('%Y-%m-%d'),
-                      'end_date': datetime.fromtimestamp(ends_ts).strftime('%Y-%m-%d'),
-                      'portofolio_data': {}}
-
-        for ticker in {allocation['ticker'] for allocation in allocations}:
-            es_first_price_doc = es_dbi.search_documents(config.ES_INDEX_STOCK_PRICES, query_body={
-                'query': {'bool': {'must': [{'term': {'ticker': ticker.lower()}},
-                                            {'range': {'date': {'gte': start_ts}}}]}},
-                "sort": [
-                    {
-                        "date": {
-                            "order": "asc"
-                        }
-                    }
-                ]
-            }, size=1)
-            es_first_price_doc = es_first_price_doc["hits"]["hits"][0]
-            price_data['portofolio_data'][ticker] = {es_first_price_doc["_source"]["date"]: float(
-                es_first_price_doc["_source"]["close"])}
-
-            es_last_price_doc = es_dbi.search_documents(config.ES_INDEX_STOCK_PRICES, query_body={
-                'query': {'bool': {'must': [{'term': {'ticker': ticker.lower()}},
-                                            {'range': {'date': {'lte': ends_ts}}}]}},
-                "sort": [
-                    {
-                        "date": {
-                            "order": "desc"
-                        }
-                    }
-                ]
-            }, size=1)
-            es_last_price_doc = es_last_price_doc["hits"]["hits"][0]
-            price_data['portofolio_data'][ticker][es_last_price_doc["_source"]["date"]] = float(
-                es_last_price_doc["_source"]["close"])
-
-        # compute return for each holding
-        for ticker in price_data['portofolio_data']:
-            start_ts, end_ts = min(list(price_data['portofolio_data'][ticker].keys())), max(
-                list(price_data['portofolio_data'][ticker].keys()))
-
-            price_data['portofolio_data'][ticker]['return_value_per_share'] = \
-                price_data['portofolio_data'][ticker][end_ts] - price_data['portofolio_data'][ticker][start_ts]
-
-            price_data['portofolio_data'][ticker]['return_percentage'] = \
-                (100 * price_data['portofolio_data'][ticker][end_ts] / price_data['portofolio_data'][ticker][
-                    start_ts]) - 100
-
-        # compute total return
-        price_data["total_return_percentage"] = round(sum(
-            [allocation["percentage"] / 100 * price_data['portofolio_data'][allocation["ticker"]][
-                "return_percentage"] for allocation in allocations]), 2)
-
-        return 200, price_data, 'OK'
