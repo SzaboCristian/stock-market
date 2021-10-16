@@ -1,3 +1,7 @@
+"""
+Classes for ES minimal portofolio mapping with validation methods.
+"""
+
 import json
 import time
 from datetime import datetime
@@ -6,9 +10,9 @@ from typing import List
 from util import config
 
 
-####################
-# Cutom Exceptions #
-####################
+#####################
+# Custom Exceptions #
+#####################
 
 class AllocationException(Exception):
     pass
