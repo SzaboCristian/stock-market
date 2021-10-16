@@ -82,7 +82,8 @@ def stock_prices_updater_task() -> None:
         updated_ticker_last_price_dates = {}
         for ticker in ticker_last_price_dates:
             next_date = datetime.datetime.strptime(ticker_last_price_dates[ticker], '%Y-%m-%d')
-            next_date += datetime.timedelta(days=1) if ticker_last_price_dates[ticker] != DEFAULT_LAST_PRICE_DATE else 0
+            if ticker_last_price_dates[ticker] != DEFAULT_LAST_PRICE_DATE:
+                next_date += datetime.timedelta(days=1)
             next_date = next_date.strftime("%Y-%m-%d")
 
             if next_date != yf_now_date:
