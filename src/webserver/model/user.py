@@ -2,7 +2,7 @@
 Flask-SQLAlchmey model classes.
 """
 
-from webserver.models.db import db
+from webserver.model.db import db
 
 
 # noinspection PyUnresolvedReferences

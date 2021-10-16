@@ -7,6 +7,7 @@ __author__ = "Szabo Cristian"
 
 from flask_restplus import Resource
 
+from webserver import decorators
 from webserver.core.investment_calculator import InvestmentCalculatorAPI
 from webserver.flask_rest import FlaskRestPlusApi
 from webserver.responses import response_400, response
@@ -16,6 +17,8 @@ api = FlaskRestPlusApi.get_instance()
 
 
 class RouteInvestmentCalculatorCompoundInterest(Resource):
+    method_decorators = [decorators.webserver_logger]
+
     @staticmethod
     @api.doc(params={
         "starting_amount": api_param_query(required=True,
@@ -71,5 +74,4 @@ class RouteInvestmentCalculatorCompoundInterest(Resource):
             yearly_return_rate=yearly_return_rate,
             investment_length_in_years=investment_length_in_years,
             additional_yearly_contribution=additional_yearly_contribution,
-            additional_at_end_of_year=additional_at_end_of_year
-        ))
+            additional_at_end_of_year=additional_at_end_of_year))

@@ -7,6 +7,7 @@ __author__ = "Szabo Cristian"
 
 from flask_restplus import Resource
 
+from webserver import decorators
 from webserver.core.stocks_management import StocksManagementAPI
 from webserver.flask_rest import FlaskRestPlusApi
 from webserver.responses import response_400, response
@@ -17,6 +18,7 @@ api = FlaskRestPlusApi.get_instance()
 
 
 class RouteStocks(Resource):
+    method_decorators = [decorators.webserver_logger]
 
     @staticmethod
     @api.doc(params={
@@ -67,6 +69,7 @@ class RouteStocks(Resource):
         400: "No ticker provided.",
         500: "Could not save info for ticker <>."
     })
+    @api.doc(security='apiKey')
     @token_required
     def post(current_user) -> response:
         if not current_user.admin:
@@ -87,6 +90,7 @@ class RouteStocks(Resource):
         400: "No ticker provided. | No update info provided.",
         500: "Could not update info for ticker <>."
     })
+    @api.doc(security='apiKey')
     @token_required
     def put(current_user) -> response:
         if not current_user.admin:
@@ -111,6 +115,7 @@ class RouteStocks(Resource):
         200: "OK",
         404: "Ticker <> not found.",
     })
+    @api.doc(security='apiKey')
     @token_required
     def delete(current_user) -> response:
         if not current_user.admin:

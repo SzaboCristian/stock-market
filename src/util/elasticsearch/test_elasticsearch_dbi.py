@@ -40,6 +40,15 @@ class TestElasticsearchDBI(unittest.TestCase):
             self.es_dbi.delete_index(self.test_index_name)
         self.assertTrue(self.es_dbi.create_index(self.test_index_name))
 
+    def test_refresh_index(self) -> None:
+        """
+        Test refresh index.
+        @return: None
+        """
+
+        self.test_create_index()
+        self.assertTrue(self.es_dbi.refresh_index(self.test_index_name))
+
     def test_get_indices(self) -> None:
         """
         Test get dictionary with all index names.

@@ -12,6 +12,7 @@ from datetime import datetime
 from util import config
 from util.elasticsearch.elasticsearch_dbi import ElasticsearchDBI
 from util.utils import DEFAULT_LAST_PRICE_DATE, yf_get_historical_price_data_for_ticker, get_last_price_date_for_ticker
+from webserver.decorators import fails_safe_request
 
 NOW_DATE = datetime.now()
 NOW_TIMESTAMP = int(time.time())
@@ -32,6 +33,7 @@ TIME_RANGES = {
 class StockPricesManagementAPI:
 
     @staticmethod
+    @fails_safe_request
     def get_price_history_for_ticker(ticker, start="LAST_WEEK", start_ts=None, end_ts=NOW_TIMESTAMP) -> tuple:
         """
         Get stock price history since start until end for specified ticker.
@@ -69,6 +71,7 @@ class StockPricesManagementAPI:
         return 200, price_history, "OK"
 
     @staticmethod
+    @fails_safe_request
     def add_price_history_for_stock(ticker) -> tuple:
         """
         Add historical prices for specified ticker.
@@ -109,9 +112,12 @@ class StockPricesManagementAPI:
         if actions:
             es_dbi.bulk(actions, chunk_size=len(actions), max_retries=3)
 
+        es_dbi.refresh_index(config.ES_INDEX_STOCK_PRICES)
+
         return 200, prices, "OK"
 
     @staticmethod
+    @fails_safe_request
     def delete_price_history_for_stock(ticker) -> tuple:
         """
         Delete price history for ticker from stock_prices index.
@@ -144,5 +150,7 @@ class StockPricesManagementAPI:
                 actions = actions[1000:]
             else:
                 actions = []
+
+        es_dbi.refresh_index(config.ES_INDEX_STOCK_PRICES)
 
         return 200, True, "OK"

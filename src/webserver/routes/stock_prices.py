@@ -9,6 +9,7 @@ import time
 
 from flask_restplus import Resource
 
+from webserver import decorators
 from webserver.core.stock_prices_management import StockPricesManagementAPI
 from webserver.flask_rest import FlaskRestPlusApi
 from webserver.responses import response_400, response
@@ -19,6 +20,7 @@ api = FlaskRestPlusApi.get_instance()
 
 
 class RouteStockPrices(Resource):
+    method_decorators = [decorators.webserver_logger]
 
     @staticmethod
     @api.doc(params={
@@ -61,6 +63,7 @@ class RouteStockPrices(Resource):
         200: "OK",
         404: "No stock for ticker <> | No price history found for ticker <>."
     })
+    @api.doc(security='apiKey')
     @token_required
     def post(current_user) -> response:
         if not current_user.admin:
@@ -81,6 +84,7 @@ class RouteStockPrices(Resource):
         200: "OK",
         404: "No price history found for ticker <>. | Investment length must be greater or equal to 1",
     })
+    @api.doc(security='apiKey')
     @token_required
     def delete(current_user) -> response:
         if not current_user.admin:

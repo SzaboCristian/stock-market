@@ -2,14 +2,16 @@ import uuid
 
 from sqlalchemy.exc import IntegrityError
 
-from webserver.models.db import db
-from webserver.models.user import User
+from webserver.decorators import fails_safe_request
+from webserver.model.db import db
+from webserver.model.user import User
 
 
 class UsersManagementAPI:
 
     @staticmethod
-    def get_users(public_id=None):
+    @fails_safe_request
+    def get_users(public_id=None) -> tuple:
         if not public_id:
             users = User.query.all()
             users = [{'public_id': user.public_id, 'username': user.username, 'password': user.password,
@@ -25,7 +27,8 @@ class UsersManagementAPI:
         return 404, {}, 'User not found.'
 
     @staticmethod
-    def create_user(username, hashed_password):
+    @fails_safe_request
+    def create_user(username, hashed_password) -> tuple:
         try:
             new_user = User(public_id=str(uuid.uuid4()), username=username, password=hashed_password, admin=False)
             db.session.add(new_user)
@@ -37,7 +40,8 @@ class UsersManagementAPI:
             return 500, {}, 'Could not create user.'
 
     @staticmethod
-    def promote_user(public_id):
+    @fails_safe_request
+    def promote_user(public_id) -> tuple:
         user = User.query.filter_by(public_id=public_id).first()
         if not user:
             return 404, {}, 'User not found.'
@@ -46,7 +50,8 @@ class UsersManagementAPI:
         return 200, {'message': 'User {} promoted'.format(public_id)}, 'OK'
 
     @staticmethod
-    def delete_use(public_id):
+    @fails_safe_request
+    def delete_use(public_id) -> tuple:
         user = User.query.filter_by(public_id=public_id).first()
         if not user:
             return 404, {}, 'User not found.'

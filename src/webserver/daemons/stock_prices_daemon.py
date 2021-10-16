@@ -8,6 +8,8 @@ __author__ = "Szabo Cristian"
 import time
 from datetime import datetime
 
+import pytz
+
 from util import config
 from util.elasticsearch.elasticsearch_dbi import ElasticsearchDBI
 from util.logger.logger import Logger
@@ -25,12 +27,13 @@ def markets_closed_the_day_before() -> bool:
     return datetime.today().weekday() in [0, 6]
 
 
-def are_markets_open() -> bool:
+def are_any_markets_open() -> bool:
     """
-    Most markets are closed between 00:00 - 08:00 (Europe time) and on weekends.
+    All markets are closed between 00:00 - 08:00 (Europe/Bucharest time) and on weekends.
     @return: boolean
     """
-    return datetime.today().weekday() not in [5, 6] and 8 <= datetime.now().hour <= 24
+    return datetime.today().weekday() not in [5, 6] and \
+           8 <= datetime.now(tz=pytz.timezone('Europe/Bucharest')).hour <= 24
 
 
 def should_update_stock_prices() -> bool:
@@ -38,7 +41,7 @@ def should_update_stock_prices() -> bool:
         Logger.info("Markets were closed the day before. No new price info to be found.")
         return False
 
-    if are_markets_open():
+    if are_any_markets_open():
         Logger.info("Markets are still open, waiting to close in order to update prices.")
         return False
 
@@ -54,11 +57,11 @@ def stock_prices_updater_task() -> None:
     es_dbi = ElasticsearchDBI.get_instance(config.ELASTICSEARCH_HOST, config.ELASTICSEARCH_PORT)
     ticker_last_price_dates = {}
     last_ticker_fetch_ts = 0
-    update_cnt = 0
+    first_iteration = True
 
     while True:
         # always update on daemon startup and then at the end of each day when markets were open
-        if update_cnt != 0 and not should_update_stock_prices():
+        if not first_iteration and not should_update_stock_prices():
             time.sleep(_ONE_HOUR)
             continue
 
@@ -114,4 +117,4 @@ def stock_prices_updater_task() -> None:
 
         # wait 24h since iteration start
         time.sleep(_ONE_DAY - start_ts)
-        update_cnt += 1
+        first_iteration = False

@@ -8,6 +8,7 @@ __author__ = "Szabo Cristian"
 from flask_restplus import Resource
 from werkzeug.security import generate_password_hash
 
+from webserver import decorators
 from webserver.core.users_management import UsersManagementAPI
 from webserver.flask_rest import FlaskRestPlusApi
 from webserver.responses import response_400, response
@@ -18,6 +19,7 @@ api = FlaskRestPlusApi.get_instance()
 
 
 class RouteUsers(Resource):
+    method_decorators = [decorators.webserver_logger]
 
     @staticmethod
     @api.doc(params={
@@ -27,6 +29,7 @@ class RouteUsers(Resource):
         200: "OK",
         404: "User not found."
     })
+    @api.doc(security='apiKey')
     @token_required
     def get(current_user) -> response:
         if not current_user.admin:
@@ -71,6 +74,7 @@ class RouteUsers(Resource):
         400: "Param <> is required",
         404: "User not found."
     })
+    @api.doc(security='apiKey')
     @token_required
     def put(current_user) -> response:
         if not current_user.admin:
@@ -91,6 +95,7 @@ class RouteUsers(Resource):
         400: "Param <> is required",
         404: "User not found."
     })
+    @api.doc(security='apiKey')
     @token_required
     def delete(current_user) -> response:
         if not current_user.admin:

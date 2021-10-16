@@ -13,9 +13,10 @@ from flask import request
 from flask_restplus import Resource
 from werkzeug.security import generate_password_hash, check_password_hash
 
+from webserver import decorators
 from webserver.core.users_management import UsersManagementAPI
 from webserver.flask_rest import FlaskRestPlusApi, FlaskApp
-from webserver.models.user import User
+from webserver.model.user import User
 from webserver.responses import response_400, response
 from webserver.routes.utils import api_param_form, get_request_parameter
 
@@ -46,12 +47,14 @@ def token_required(f):
 
 
 class RouteLogin(Resource):
+    method_decorators = [decorators.webserver_logger]
 
     @staticmethod
     @api.doc(responses={
         201: "OK",
         401: "Could not verify authorization."
     })
+    @api.doc(security="Basic Auth")
     def post() -> response:
         auth = request.authorization
         if not auth or not auth.username or not auth.password:
@@ -61,11 +64,11 @@ class RouteLogin(Resource):
         user = User.query.filter_by(username=auth.username).first()
         if not user:
             return response(401, {'WWW-Authenticate': 'Basic realm="Login required!"'},
-                            'Could not verify authorization.')
+                            'Invalid username.')
 
         if not check_password_hash(user.password, auth.password):
             return response(401, {'WWW-Authenticate': 'Basic realm="Login required!"'},
-                            'Could not verify authorization.')
+                            'Invalid password.')
 
         token = jwt.encode(
             {'public_id': user.public_id,
@@ -76,6 +79,7 @@ class RouteLogin(Resource):
 
 
 class RouteRegister(Resource):
+    method_decorators = [decorators.webserver_logger]
 
     @staticmethod
     @api.doc(params={

@@ -15,4 +15,5 @@ COPY ./ ./
 ENV PYTHONPATH="$PYTHONPATH:."
 
 # Run webserver
-CMD ["python", "-m", "webserver.app"]
+# CMD ["python", "-m", "webserver.app"]
+CMD ["gunicorn", "-c", "webserver/gunicorn.conf.py", "webserver.wsgi:flask_app"]
