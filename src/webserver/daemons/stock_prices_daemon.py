@@ -5,15 +5,16 @@ Daemon that keeps stock_prices index up to date. Historical price data is gather
 __version__ = "0.0.1"
 __author__ = "Szabo Cristian"
 
+import datetime
 import time
-from datetime import datetime
 
 import pytz
 
 from util import config
 from util.elasticsearch.elasticsearch_dbi import ElasticsearchDBI
 from util.logger.logger import Logger
-from util.utils import get_all_tickers, get_last_price_date_for_tickers, yf_get_historical_price_data_for_ticker
+from util.utils import get_all_tickers, get_last_price_date_for_tickers, yf_get_historical_price_data_for_ticker, \
+    DEFAULT_LAST_PRICE_DATE
 
 _ONE_HOUR = 3600
 _ONE_DAY = 24 * _ONE_HOUR
@@ -24,7 +25,7 @@ def markets_closed_the_day_before() -> bool:
     Check if current day sunday/monday.
     @return: boolean
     """
-    return datetime.today().weekday() in [0, 6]
+    return datetime.datetime.today().weekday() in [0, 6]
 
 
 def are_any_markets_open() -> bool:
@@ -32,8 +33,8 @@ def are_any_markets_open() -> bool:
     All markets are closed between 00:00 - 08:00 (Europe/Bucharest time) and on weekends.
     @return: boolean
     """
-    return datetime.today().weekday() not in [5, 6] and \
-           8 <= datetime.now(tz=pytz.timezone('Europe/Bucharest')).hour <= 24
+    return datetime.datetime.today().weekday() not in [5, 6] and \
+           8 <= datetime.datetime.now(tz=pytz.timezone('Europe/Bucharest')).hour <= 24
 
 
 def should_update_stock_prices() -> bool:
@@ -75,15 +76,19 @@ def stock_prices_updater_task() -> None:
                 last_ticker_fetch_ts = time.time()
 
         # update price historical data up to
-        yf_now_date = datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d")
+        yf_now_date = datetime.datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d")
 
         actions = []
         updated_ticker_last_price_dates = {}
         for ticker in ticker_last_price_dates:
-            if ticker_last_price_dates[ticker] != yf_now_date:
+            next_date = datetime.datetime.strptime(ticker_last_price_dates[ticker], '%Y-%m-%d')
+            next_date += datetime.timedelta(days=1) if ticker_last_price_dates[ticker] != DEFAULT_LAST_PRICE_DATE else 0
+            next_date = next_date.strftime("%Y-%m-%d")
+
+            if next_date != yf_now_date:
                 # price history not up to date, get prices
                 missing_prices = yf_get_historical_price_data_for_ticker(ticker=ticker,
-                                                                         start_date=ticker_last_price_dates[ticker],
+                                                                         start_date=next_date,
                                                                          end_date=yf_now_date)
 
                 if not missing_prices:
@@ -101,7 +106,7 @@ def stock_prices_updater_task() -> None:
                         actions = []
 
                 # set last date
-                last_price_date = datetime.fromtimestamp(missing_prices[-1]["date"]).strftime("%Y-%m-%d")
+                last_price_date = datetime.datetime.fromtimestamp(missing_prices[-1]["date"]).strftime("%Y-%m-%d")
                 updated_ticker_last_price_dates[ticker] = last_price_date
 
                 Logger.info("Got price history for [{}]: {} -> {}".format(ticker,

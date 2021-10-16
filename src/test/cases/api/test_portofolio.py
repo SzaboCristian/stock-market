@@ -90,7 +90,7 @@ class TestPortofolioAPI(unittest.TestCase, InterfaceTestAPI):
                                                                       allocations=[{'ticker': 'AAPL',
                                                                                     'percentage': 20},
                                                                                    {'ticker': 'TSLA',
-                                                                                    'percentage': 70}],
+                                                                                    'percentage': 50}],
                                                                       test=True)
         self.assertEqual(status, 400)
         self.assertFalse(data)
@@ -105,7 +105,7 @@ class TestPortofolioAPI(unittest.TestCase, InterfaceTestAPI):
     def __test_bad_params_update_portofolio(self) -> None:
         # bad data
         status, data, msg = PortofolioManagementAPI.update_portofolio(user_id=None, portofolio_id={"invalid": "type"},
-                                                                      allocations=100)
+                                                                      new_allocations=100)
         self.assertEqual(status, 404)
         self.assertFalse(data)
         self.assertEqual(msg, "Portofolio not found.")
@@ -121,7 +121,7 @@ class TestPortofolioAPI(unittest.TestCase, InterfaceTestAPI):
         # update protofolio - other user
         status, data, msg = PortofolioManagementAPI.update_portofolio(user_id='other-user-id',
                                                                       portofolio_id=portofolio_id,
-                                                                      allocations=new_allocations)
+                                                                      new_allocations=new_allocations)
         self.assertEqual(status, 401)
         self.assertFalse(data)
         self.assertEqual(msg, 'Cannot update other users\' portofolios')
@@ -184,7 +184,7 @@ class TestPortofolioAPI(unittest.TestCase, InterfaceTestAPI):
         # update protofolio
         status, data, msg = PortofolioManagementAPI.update_portofolio(user_id=self.test_user_id,
                                                                       portofolio_id=portofolio_id,
-                                                                      allocations=new_allocations)
+                                                                      new_allocations=new_allocations)
         self.assertEqual(status, 200)
         self.assertTrue(data)
         self.assertEqual(msg, "OK")

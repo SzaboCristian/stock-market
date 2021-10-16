@@ -91,7 +91,7 @@ class RoutePortofolio(Resource):
 
         return response(*PortofolioManagementAPI.update_portofolio(user_id=current_user.public_id,
                                                                    portofolio_id=portofolio_id,
-                                                                   allocations=allocations,
+                                                                   new_allocations=allocations,
                                                                    portofolio_name=portofolio_name))
 
     @staticmethod
