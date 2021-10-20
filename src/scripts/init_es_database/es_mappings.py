@@ -115,7 +115,7 @@ ES_INDEX_STOCK_PRICES_MAPPINGS = {
     }
 }
 
-ES_INDEX_PORTOFOLIOS_MAPPINGS = {
+ES_INDEX_PORTFOLIOS_MAPPINGS = {
     "mappings": {
         "properties": {
             "portofolio_name": {
