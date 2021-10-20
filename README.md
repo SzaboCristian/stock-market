@@ -45,13 +45,16 @@
 7. Import datasets (from src)
     1. python3.6 scripts/init_es_database/main.py
     2. python3.6 scripts/populate_es_database/main.py
+   
+
+8. Create .env file following .env\_template 
 
 
-8. Start webserver
+9. Start webserver
     1. docker-compose up --build webserver
 
 
-9. APIs available at http://localhost:5000
+10. APIs available at http://localhost:5000
     1. Test admin/user credentials - admin:admin | user:user (log-in)
     2. Returned JWT (x-access-token apiKey) must be set in order to be able to use all APIs
 
