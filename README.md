@@ -47,7 +47,7 @@
     2. python3.6 scripts/populate_es_database/main.py
    
 
-8. Create .env file following .env\_template 
+8. Create .env file following .env\_template (default FLASK\_SECRET=thisissecret)
 
 
 9. Start webserver
