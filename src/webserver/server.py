@@ -1,7 +1,7 @@
 from webserver.flask_rest import FlaskApp, FlaskRestPlusApi
 from webserver.routes.authentication import RouteLogin, RouteRegister
 from webserver.routes.investment_calculator import RouteInvestmentCalculatorCompoundInterest
-from webserver.routes.portofolios import RoutePortofolio, RouteBacktest
+from webserver.routes.portfolio import RoutePortfolio, RouteBacktest
 from webserver.routes.stock_prices import RouteStockPrices
 from webserver.routes.stocks import RouteStocks
 
@@ -29,10 +29,10 @@ flask_api.ns('stocks', security='apiKey', authorizations=authorizations).add_res
 flask_api.ns('stock-prices', security='apiKey', authorizations=authorizations).add_resource(RouteStockPrices,
                                                                                             "/stock-prices")
 
-flask_api.ns('portofolio', security='apiKey', authorizations=authorizations).add_resource(RoutePortofolio,
-                                                                                          "/portofolio")
-flask_api.ns('portofolio', security='apiKey', authorizations=authorizations).add_resource(RouteBacktest,
-                                                                                          "/portofolio/backtest")
+flask_api.ns('portfolio', security='apiKey', authorizations=authorizations).add_resource(RoutePortfolio,
+                                                                                         "/portfolio")
+flask_api.ns('portfolio', security='apiKey', authorizations=authorizations).add_resource(RouteBacktest,
+                                                                                         "/portfolio/backtest")
 
 flask_api.ns('investment-calculator').add_resource(RouteInvestmentCalculatorCompoundInterest,
                                                    "/investment-calculator/compound-interest")

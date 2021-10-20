@@ -1,5 +1,5 @@
 """
-Classes for ES minimal portofolio mapping with validation methods.
+Classes for ES minimal portfolio mapping with validation methods.
 """
 
 import json
@@ -7,18 +7,20 @@ import time
 from datetime import datetime
 from typing import List
 
-from util import config
+from util.elasticsearch.es_portfolio import ESPortfolio
+from util.logger.logger import Logger
 
 
 #####################
 # Custom Exceptions #
 #####################
 
+
 class AllocationException(Exception):
     pass
 
 
-class PortofolioException(Exception):
+class PortfolioException(Exception):
     pass
 
 
@@ -28,7 +30,7 @@ class PortofolioException(Exception):
 
 class Allocation:
     """
-    Portofolio allocation entry. ticker and percentage must be specified.
+    Portfolio allocation entry. ticker and percentage must be specified.
     """
 
     def __init__(self, ticker=None, percentage=None, allocation_json=None, **kwargs):
@@ -89,26 +91,26 @@ class Allocation:
             raise AllocationException("Invalid allocation {}".format(self.get_data()))
 
 
-class Portofolio:
+class Portfolio:
     """
-    Portofolio class
+    Portfolio class
     """
 
-    def __init__(self, portofolio_name=None, allocations=None, user_id=None, created_timestamp=None,
-                 modified_timestamp=None, portofolio_json=None):
-        if portofolio_json:
-            self._portofolio_name = portofolio_json.get('portofolio_name', 'default_user_portofolio')
-            self._allocations = portofolio_json.get('allocations', [])
-            self._user_id = portofolio_json.get('user_id', None)
-            self._created_timestamp = portofolio_json.get('created_timestamp', int(time.time()))
-            self._modified_timestamp = portofolio_json.get('modified_timestamp', int(time.time()))
+    def __init__(self, portfolio_name=None, allocations=None, user_id=None, created_timestamp=None,
+                 modified_timestamp=None, portfolio_json=None):
+        if portfolio_json:
+            self._portfolio_name = portfolio_json.get('portfolio_name', 'default_user_portfolio')
+            self._allocations = portfolio_json.get('allocations', [])
+            self._user_id = portfolio_json.get('user_id', None)
+            self._created_timestamp = portfolio_json.get('created_timestamp', int(time.time()))
+            self._modified_timestamp = portfolio_json.get('modified_timestamp', int(time.time()))
         else:
-            self._portofolio_name = portofolio_name
+            self._portfolio_name = portfolio_name
             self._allocations = allocations
             self._user_id = user_id
             self._created_timestamp = created_timestamp
             self._modified_timestamp = modified_timestamp
-        self.validate_portofolio()
+        self.validate_portfolio()
 
     def __str__(self) -> str:
         """
@@ -122,26 +124,26 @@ class Portofolio:
         Object dict representation.
         @return: dict
         """
-        return dict(portofolio_name=self._portofolio_name,
+        return dict(portfolio_name=self._portfolio_name,
                     allocations=[allocation.get_data() for allocation in self._allocations],
                     user_id=self._user_id,
                     created_timestamp=self._created_timestamp,
                     modified_timestamp=self._modified_timestamp)
 
-    def get_portofolio_name(self) -> str:
+    def get_portfolio_name(self) -> str:
         """
-        Portofolio name getter.
+        Portfolio name getter.
         @return: str
         """
-        return self._portofolio_name
+        return self._portfolio_name
 
-    def set_portofolio_name(self, portofolio_name) -> None:
+    def set_portfolio_name(self, portfolio_name) -> None:
         """
-        Portofolio name setter.
-        @param portofolio_name: string
+        Portfolio name setter.
+        @param portfolio_name: string
         @return: None
         """
-        self._portofolio_name = portofolio_name
+        self._portfolio_name = portfolio_name
 
     def get_allocations(self) -> List[Allocation]:
         """
@@ -157,7 +159,7 @@ class Portofolio:
          @return: None
          """
         self._allocations = allocations
-        self.validate_portofolio_allocations()
+        self.validate_portfolio_allocations()
 
     def get_modified_timestamp(self) -> int:
         """
@@ -174,10 +176,9 @@ class Portofolio:
          """
         self._modified_timestamp = modified_timestamp
 
-    def backtest(self, es_dbi, start_ts, end_ts) -> dict:
+    def backtest(self, start_ts, end_ts) -> dict:
         """
-        Backtest portofolio.
-        @param es_dbi: ElasticsearchDBI object
+        Backtest portfolio.
         @param start_ts: int
         @param end_ts: int
         @return: dict
@@ -185,84 +186,70 @@ class Portofolio:
 
         backtest_info = {'start_date': datetime.fromtimestamp(start_ts).strftime('%Y-%m-%d'),
                          'end_date': datetime.fromtimestamp(end_ts).strftime('%Y-%m-%d'),
-                         'portofolio_data': {}}
+                         'portfolio_data': {}}
 
         for allocation in self._allocations:
             ticker = allocation.get_ticker()
-            es_first_price_doc = es_dbi.search_documents(config.ES_INDEX_STOCK_PRICES, query_body={
-                'query': {'bool': {'must': [{'term': {'ticker': ticker.lower()}},
-                                            {'range': {'date': {'gte': start_ts}}}]}},
-                "sort": [
-                    {
-                        "date": {
-                            "order": "asc"
-                        }
-                    }
-                ]
-            }, size=1)
-            es_first_price_doc = es_first_price_doc["hits"]["hits"][0]
-            backtest_info['portofolio_data'][ticker] = {es_first_price_doc["_source"]["date"]: float(
-                es_first_price_doc["_source"]["close"])}
 
-            es_last_price_doc = es_dbi.search_documents(config.ES_INDEX_STOCK_PRICES, query_body={
-                'query': {'bool': {'must': [{'term': {'ticker': ticker.lower()}},
-                                            {'range': {'date': {'lte': end_ts}}}]}},
-                "sort": [
-                    {
-                        "date": {
-                            "order": "desc"
-                        }
-                    }
-                ]
-            }, size=1)
-            es_last_price_doc = es_last_price_doc["hits"]["hits"][0]
-            backtest_info['portofolio_data'][ticker][es_last_price_doc["_source"]["date"]] = float(
-                es_last_price_doc["_source"]["close"])
+            # get first date and price
+            first_date, first_price = ESPortfolio.get_ticker_first_price(ticker, start_ts)
+            if not first_price:
+                Logger.exception("No stock prices for ticker {}".format(ticker))
+                first_price = 0
+
+            backtest_info['portfolio_data'][ticker] = {first_date: first_price}
+
+            # get last date and price
+            last_date, last_price = ESPortfolio.get_ticker_last_price(ticker, end_ts)
+            if not first_price:
+                Logger.exception("Could not get last price for ticker {}".format(ticker))
+                last_price = first_price
+            backtest_info['portfolio_data'][ticker][last_date] = last_price
 
         # compute return for each holding
-        for ticker in backtest_info['portofolio_data']:
-            start_ts, end_ts = min(list(backtest_info['portofolio_data'][ticker].keys())), max(
-                list(backtest_info['portofolio_data'][ticker].keys()))
+        for ticker in backtest_info['portfolio_data']:
+            start_ts, end_ts = min(list(backtest_info['portfolio_data'][ticker].keys())), max(
+                list(backtest_info['portfolio_data'][ticker].keys()))
 
-            backtest_info['portofolio_data'][ticker]['return_value_per_share'] = \
-                backtest_info['portofolio_data'][ticker][end_ts] - backtest_info['portofolio_data'][ticker][start_ts]
+            backtest_info['portfolio_data'][ticker]['return_value_per_share'] = \
+                backtest_info['portfolio_data'][ticker][end_ts] - backtest_info['portfolio_data'][ticker][start_ts]
 
-            backtest_info['portofolio_data'][ticker]['return_percentage'] = \
-                (100 * backtest_info['portofolio_data'][ticker][end_ts] / backtest_info['portofolio_data'][ticker][
+            backtest_info['portfolio_data'][ticker]['return_percentage'] = \
+                (100 * backtest_info['portfolio_data'][ticker][end_ts] / backtest_info['portfolio_data'][ticker][
                     start_ts]) - 100
 
         # compute total return
         backtest_info["total_return_percentage"] = round(
-            sum([allocation.get_percentage() / 100 * backtest_info['portofolio_data'][allocation.get_ticker()][
+            sum([allocation.get_percentage() / 100 * backtest_info['portfolio_data'][allocation.get_ticker()][
                 "return_percentage"] for allocation in self._allocations]), 2)
 
         return backtest_info
 
-    def validate_portofolio(self) -> None:
+    def validate_portfolio(self) -> None:
         """
-        Validate portofolio data fields.
+        Validate portfolio data fields.
         @return: None
         """
         if not self._user_id:
-            raise PortofolioException("No user id set.")
+            raise PortfolioException("No user id set.")
 
-        if not self._portofolio_name:
-            raise PortofolioException("No portofolio name set")
+        if not self._portfolio_name:
+            raise PortfolioException("No portfolio name set")
 
         if not self._allocations:
-            raise PortofolioException("No allocations set")
+            raise PortfolioException("No allocations set")
 
-        self.validate_portofolio_allocations()
+        self.validate_portfolio_allocations()
 
         if not self._created_timestamp:
-            raise PortofolioException("No created timestamp set.")
+            raise PortfolioException("No created timestamp set.")
 
         if not self._modified_timestamp:
-            raise PortofolioException("No modified timestamp set.")
+            raise PortfolioException("No modified timestamp set.")
 
-    def validate_portofolio_allocations(self) -> None:
+    def validate_portfolio_allocations(self) -> None:
         """
-        Validate portofolio allocations.
+        Validate portfolio allocations.
         @return: None
         """
         allocation_percentage = 0
@@ -275,4 +262,4 @@ class Portofolio:
             ticker_tracker.add(allocation.get_ticker())
 
         if allocation_percentage != 100:
-            raise PortofolioException("Total allocation percentage must be 100%.")
+            raise PortfolioException("Total allocation percentage must be 100%.")

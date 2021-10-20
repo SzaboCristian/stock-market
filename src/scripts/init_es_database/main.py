@@ -5,14 +5,14 @@ __version__ = '0.0.1'
 __author__ = 'Szabo Cristian'
 
 from scripts.init_es_database.es_mappings import ES_INDEX_STOCKS_MAPPINGS, ES_INDEX_STOCK_PRICES_MAPPINGS, \
-    ES_INDEX_PORTOFOLIOS_MAPPINGS
+    ES_INDEX_PORTFOLIOS_MAPPINGS
 from util import config
 from util.elasticsearch.elasticsearch_dbi import ElasticsearchDBI
 from util.logger.logger import Logger
 
 INDEX_MAPPINGS = {config.ES_INDEX_STOCKS: ES_INDEX_STOCKS_MAPPINGS,
                   config.ES_INDEX_STOCK_PRICES: ES_INDEX_STOCK_PRICES_MAPPINGS,
-                  config.ES_INDEX_PORTOFOLIOS: ES_INDEX_PORTOFOLIOS_MAPPINGS}
+                  config.ES_INDEX_PORTFOLIOS: ES_INDEX_PORTFOLIOS_MAPPINGS}
 
 
 def create_indices(recreate=False):

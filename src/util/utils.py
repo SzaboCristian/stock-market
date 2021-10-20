@@ -124,16 +124,16 @@ def get_all_tickers(es_dbi):
     """
 
     # get all tickers from stocks index
+    tickers = set()
     try:
-        tickers = es_dbi.search_documents(config.ES_INDEX_STOCKS, query_body={
+        for es_doc in es_dbi.scroll_search_documents_generator(config.ES_INDEX_STOCKS, query_body={
             "_source": False
-        })
-        tickers = [es_doc["_id"] for es_doc in tickers["hits"]["hits"]]
+        }):
+            tickers.add(es_doc['_id'])
     except Exception as exception:
         Logger.exception(str(exception))
-        tickers = []
 
-    return sorted(tickers)
+    return sorted(list(tickers))
 
 
 def get_last_price_date_for_ticker(ticker, es_dbi) -> str:
@@ -146,6 +146,7 @@ def get_last_price_date_for_ticker(ticker, es_dbi) -> str:
     try:
         # get max timestamp for ticker
         last_timestamp_docs = es_dbi.search_documents(config.ES_INDEX_STOCK_PRICES, query_body={
+            "_source": ["ticker", "date"],
             "query": {
                 'bool': {
                     'must': [{'term': {'ticker': ticker.lower()}}]}
