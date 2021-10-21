@@ -9,7 +9,7 @@
 * Linux based OS (ex. Ubuntu)
 * Python >= 3.6
 * Docker + docker-compose
-* Datasets: https://mega.nz/folder/qJ8UUARZ#Rzur_Kpr9CCn5MaIZZfuWw
+* Datasets: https://mega.nz/folder/kchWnKaZ#oQSQyIU4QxGBSVmEjsLaTQ
 
 ### Install steps:
 
@@ -38,7 +38,7 @@
     1. docker-compose up kibana
 
 
-6. Download datasets from  https://mega.nz/folder/qJ8UUARZ#Rzur_Kpr9CCn5MaIZZfuWw
+6. Download datasets from  https://mega.nz/folder/kchWnKaZ#oQSQyIU4QxGBSVmEjsLaTQ
     1. save files to stock-market/data
 
 

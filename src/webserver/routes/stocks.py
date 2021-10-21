@@ -21,6 +21,7 @@ class RouteStocks(Resource):
     method_decorators = [decorators.webserver_logger]
 
     @staticmethod
+    @api.doc(description="Search stocks")
     @api.doc(params={
         "ticker": api_param_query(required=False,
                                   description="Company ticker"),
@@ -60,6 +61,7 @@ class RouteStocks(Resource):
                                                         legal_type=legal_type, ticker_only=tickers_only))
 
     @staticmethod
+    @api.doc(description="Add stock")
     @api.doc(params={
         "ticker": api_param_form(required=True, description="Company ticker"),
     })
@@ -81,6 +83,7 @@ class RouteStocks(Resource):
         return response(*StocksManagementAPI.add_stock(ticker=ticker))
 
     @staticmethod
+    @api.doc(description="Update stock info")
     @api.doc(params={
         "ticker": api_param_form(required=True, description="Company ticker"),
         "ticker_info": api_param_form(required=True, description="Updated information (json dict)")
@@ -107,6 +110,7 @@ class RouteStocks(Resource):
         return response(*StocksManagementAPI.update_stock_info(ticker=ticker, updated_info=ticker_info))
 
     @staticmethod
+    @api.doc(description="Delete stock")
     @api.doc(params={
         "ticker": api_param_query(required=True,
                                   description="Company ticker")

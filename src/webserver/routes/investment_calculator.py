@@ -20,6 +20,7 @@ class RouteInvestmentCalculatorCompoundInterest(Resource):
     method_decorators = [decorators.webserver_logger]
 
     @staticmethod
+    @api.doc(description="Compute compound interest.")
     @api.doc(params={
         "starting_amount": api_param_query(required=True,
                                            description="Starting amount in USD",

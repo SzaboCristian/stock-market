@@ -23,6 +23,7 @@ class RouteStockPrices(Resource):
     method_decorators = [decorators.webserver_logger]
 
     @staticmethod
+    @api.doc(description="Get stock price history")
     @api.doc(params={
         "ticker": api_param_query(required=True,
                                   description="Company ticker"),
@@ -55,6 +56,7 @@ class RouteStockPrices(Resource):
                                                                                end_ts=end_ts))
 
     @staticmethod
+    @api.doc(description="Add/update stock price history")
     @api.doc(params={
         "ticker": api_param_form(required=True,
                                  description="Company ticker")
@@ -76,6 +78,7 @@ class RouteStockPrices(Resource):
         return response(*StockPricesManagementAPI.add_price_history_for_stock(ticker=ticker))
 
     @staticmethod
+    @api.doc(description="Delete stock price history")
     @api.doc(params={
         "ticker": api_param_query(required=True,
                                   description="Company ticker")
