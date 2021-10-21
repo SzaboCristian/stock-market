@@ -44,8 +44,8 @@ services:
     env_file:
       - .env
     volumes:
-      - /home/bmf/Desktop/Webapp_project_finance/stock-market/data:/usr/flask-app/data
-      - /home/bmf/Desktop/Webapp_project_finance/stock-market/logs:/usr/flask-app/logs
+      - /home/bomfly/Desktop/Webapp_project_finance/stock-market/data:/usr/flask-app/data
+      - /home/bomfly/Desktop/Webapp_project_finance/stock-market/logs:/usr/flask-app/logs
     network_mode: "host"
 
 

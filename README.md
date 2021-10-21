@@ -50,11 +50,14 @@
 8. Create .env file following .env\_template (default FLASK\_SECRET=thisissecret)
 
 
-9. Start webserver
+9. Update docker-compose.yml volume mappings (set project path on local pc)
+
+
+10. Start webserver
     1. docker-compose up --build webserver
 
 
-10. APIs available at http://localhost:5000
+11. APIs available at http://localhost:5000
     1. Test admin/user credentials - admin:admin | user:user (log-in)
     2. Returned JWT (x-access-token apiKey) must be set in order to be able to use all APIs
 
