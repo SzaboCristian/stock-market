@@ -42,7 +42,9 @@ class RoutePortfolio(Resource):
     @staticmethod
     @api.doc(params={
         "portfolio_name": api_param_form(required=False, description='Portfolio name'),
-        "allocations": api_param_form(required=True, description="Portfolio allocations")
+        "allocations": api_param_form(required=True,
+                                      description="Portfolio allocations. Json list of dicts; "
+                                                  "format [{\"ticker\": <ticker>, \"percentage\": <int>}]")
     })
     @api.doc(responses={
         201: "OK",

@@ -128,7 +128,7 @@ def get_all_tickers(es_dbi):
     try:
         for es_doc in es_dbi.scroll_search_documents_generator(config.ES_INDEX_STOCKS, query_body={
             "_source": False
-        }):
+        }, size=1000):
             tickers.add(es_doc['_id'])
     except Exception as exception:
         Logger.exception(str(exception))
