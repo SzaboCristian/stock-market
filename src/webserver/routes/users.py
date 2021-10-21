@@ -22,6 +22,7 @@ class RouteUsers(Resource):
     method_decorators = [decorators.webserver_logger]
 
     @staticmethod
+    @api.doc(description="Get users")
     @api.doc(params={
         "public_id": api_param_query(required=False, description="User id")
     })
@@ -39,6 +40,7 @@ class RouteUsers(Resource):
         return response(*UsersManagementAPI.get_users(public_id=public_id))
 
     @staticmethod
+    @api.doc(description="Create new user (non-admin)")
     @api.doc(params={
         "username": api_param_form(required=True, description="Username"),
         "password": api_param_form(required=True, description="Password"),
@@ -49,7 +51,7 @@ class RouteUsers(Resource):
         409: "Username already exists.",
         500: "Could not create user."
     })
-    def post(self) -> response:
+    def post() -> response:
         username, msg = get_request_parameter(name="username", expected_type=str, required=True)
         if not username:
             return response_400(msg)
@@ -66,6 +68,7 @@ class RouteUsers(Resource):
         return response(*UsersManagementAPI.create_user(username=username, hashed_password=hashed_password))
 
     @staticmethod
+    @api.doc(description="Promote user to admin")
     @api.doc(params={
         "public_id": api_param_query(required=True, description="Public user id"),
     })
@@ -87,6 +90,7 @@ class RouteUsers(Resource):
         return response(*UsersManagementAPI.promote_user(public_id=public_id))
 
     @staticmethod
+    @api.doc(description="Delete user")
     @api.doc(params={
         "public_id": api_param_query(required=True, description="Public user id"),
     })

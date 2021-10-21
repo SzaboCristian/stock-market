@@ -6,6 +6,8 @@ from webserver.routes.stock_prices import RouteStockPrices
 from webserver.routes.stocks import RouteStocks
 
 # create flask app
+from webserver.routes.users import RouteUsers
+
 flask_app = FlaskApp.get_instance()
 flask_api = FlaskRestPlusApi.get_instance()
 
@@ -23,7 +25,8 @@ authorizations = {
 }
 
 flask_api.ns('auth', security='Basic Auth', authorizations=authorizations).add_resource(RouteLogin, "/login")
-flask_api.ns('auth').add_resource(RouteRegister, "/register")
+
+flask_api.ns('users', security='apiKey', authorizations=authorizations).add_resource(RouteUsers, "/users")
 
 flask_api.ns('stocks', security='apiKey', authorizations=authorizations).add_resource(RouteStocks, "/stocks")
 flask_api.ns('stock-prices', security='apiKey', authorizations=authorizations).add_resource(RouteStockPrices,

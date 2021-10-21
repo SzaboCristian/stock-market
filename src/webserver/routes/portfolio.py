@@ -25,6 +25,7 @@ class RoutePortfolio(Resource):
     method_decorators = [decorators.webserver_logger]
 
     @staticmethod
+    @api.doc(description="Get current user portfolios.")
     @api.doc(params={
         "portfolio_id": api_param_query(required=False,
                                         description="Portfolio id"),
@@ -40,6 +41,7 @@ class RoutePortfolio(Resource):
         return response(*PortfolioManagementAPI.get_portfolio(current_user.public_id, portfolio_id))
 
     @staticmethod
+    @api.doc(description="Create portfolio for current user.")
     @api.doc(params={
         "portfolio_name": api_param_form(required=False, description='Portfolio name'),
         "allocations": api_param_form(required=True,
@@ -66,6 +68,7 @@ class RoutePortfolio(Resource):
                                                                  portfolio_name=portfolio_name))
 
     @staticmethod
+    @api.doc(description="Update current user portfolio.")
     @api.doc(params={
         "portfolio_name": api_param_form(required=False, description='Portfolio name'),
         "portfolio_id": api_param_form(required=True, description="Portfolio id"),
@@ -97,6 +100,7 @@ class RoutePortfolio(Resource):
                                                                  portfolio_name=portfolio_name))
 
     @staticmethod
+    @api.doc(description="Delete current user portfolio.")
     @api.doc(params={
         "portfolio_id": api_param_query(required=True, description="Portfolio id")
     })
@@ -120,6 +124,7 @@ class RouteBacktest(Resource):
     method_decorators = [decorators.webserver_logger]
 
     @staticmethod
+    @api.doc(description="Backtest current user portfolio.")
     @api.doc(params={
         "portfolio_id": api_param_query(required=True,
                                         description="Portfolio id"),
