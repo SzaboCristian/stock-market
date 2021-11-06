@@ -21,7 +21,7 @@ preload_app = True
 
 
 def on_starting(server):
-    # create and start crcrc inserter polling thread - called before the master process is initialized
+    # create and start stock prices updater thread - called before the master process is initialized
     stock_prices_updater_thread = Thread(target=stock_prices_updater_task)
     stock_prices_updater_thread.setDaemon(True)
     stock_prices_updater_thread.start()
