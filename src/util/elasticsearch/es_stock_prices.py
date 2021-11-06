@@ -26,8 +26,8 @@ class ESStockPrices:
             ]
         }, size=1)
 
-        if not (es_first_price_doc or es_first_price_doc.get('hits', {}).get('hits', [])):
-            return None, None
+        if not (es_first_price_doc and es_first_price_doc.get('hits', {}).get('hits', [])):
+            return None
 
         first_price_info = es_first_price_doc["hits"]["hits"][0]['_source']
         return {first_price_info['date']: first_price_info['close']}
@@ -54,8 +54,8 @@ class ESStockPrices:
             ]
         }, size=1)
 
-        if not (es_last_price_doc or es_last_price_doc.get('hits', {}).get('hits', [])):
-            return None, None
+        if not (es_last_price_doc and es_last_price_doc.get('hits', {}).get('hits', [])):
+            return None
 
         last_price_info = es_last_price_doc["hits"]["hits"][0]['_source']
         return {last_price_info['date']: last_price_info['close']}

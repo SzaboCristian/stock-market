@@ -2,11 +2,10 @@ import time
 
 from util import config
 from util.elasticsearch.elasticsearch_dbi import ElasticsearchDBI
+from webserver.core.consts import TIME_RANGES
 from webserver.decorators import fails_safe_request
 from webserver.model.portfolio import Portfolio, PortfolioException, AllocationException, Allocation
 from webserver.model.user import User
-
-FIVE_YEARS_TS = int(time.time()) - 5 * 365 * 24 * 3600
 
 
 class PortfolioManagementAPI:
@@ -140,7 +139,8 @@ class PortfolioManagementAPI:
 
     @staticmethod
     @fails_safe_request
-    def backtest_portfolio(user_id, portfolio_id, start_ts=FIVE_YEARS_TS, ends_ts=int(time.time())) -> tuple:
+    def backtest_portfolio(user_id, portfolio_id, start_ts=TIME_RANGES["LAST_5_YEARS"],
+                           ends_ts=int(time.time())) -> tuple:
         """
         Backtest user portfolio. Default interval 5 years ago - now.
         @param user_id: string

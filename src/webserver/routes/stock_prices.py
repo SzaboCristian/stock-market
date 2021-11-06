@@ -10,6 +10,7 @@ import time
 from flask_restplus import Resource
 
 from webserver import decorators
+from webserver.core.consts import TIME_RANGES
 from webserver.core.stock_prices_management import StockPricesManagementAPI
 from webserver.flask_rest import FlaskRestPlusApi
 from webserver.responses import response_400, response
@@ -48,12 +49,17 @@ class RouteStockPrices(Resource):
         if not ticker:
             return response_400(msg)
 
+        start_ts = get_request_parameter('start_ts', required=False, expected_type=int)
         start = get_request_parameter(name="start", expected_type=str, required=False) or "LAST_WEEK"
-        start_ts = get_request_parameter(name="start_ts", expected_type=int, required=False)
+        if start_ts is None:
+            if start not in TIME_RANGES:
+                return response_400("Invalid time range")
+            start_ts = TIME_RANGES[start]
+
         end_ts = get_request_parameter(name="end_ts", expected_type=int, required=False)
 
-        return response(*StockPricesManagementAPI.get_price_history_for_ticker(ticker, start=start, start_ts=start_ts,
-                                                                               end_ts=end_ts))
+        return response(
+            *StockPricesManagementAPI.get_price_history_for_ticker(ticker, start_ts=start_ts, end_ts=end_ts))
 
     @staticmethod
     @api.doc(description="Add/update stock price history")

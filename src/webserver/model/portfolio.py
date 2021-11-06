@@ -9,10 +9,11 @@ from typing import List
 
 from util.elasticsearch.es_stock_prices import ESStockPrices
 from util.logger.logger import Logger
+
+
 #####################
 # Custom Exceptions #
 #####################
-from util.utils import DEFAULT_LAST_PRICE_DATE
 
 
 class AllocationException(Exception):
@@ -193,15 +194,17 @@ class Portfolio:
             # get first date and price
             first_date_price = ESStockPrices.get_ticker_first_date_price(ticker, start_ts)
             if not first_date_price:
-                Logger.exception("No stock prices for ticker {}".format(ticker))
-                first_date_price = {DEFAULT_LAST_PRICE_DATE: 0}
-            backtest_info['portfolio_data'][ticker] = first_date_price
-
-            # get last date and price
-            last_date_price = ESStockPrices.get_ticker_last_date_price(ticker, end_ts)
-            if not last_date_price:
-                Logger.exception("Could not get last price for ticker {}".format(ticker))
+                Logger.exception("No stock prices for ticker {} in the specified range.".format(ticker))
+                first_date_price = {start_ts: 0}
                 last_date_price = first_date_price
+            else:
+                # got first price -> get last date and price
+                last_date_price = ESStockPrices.get_ticker_last_date_price(ticker, end_ts)
+                if not last_date_price:
+                    Logger.exception("Could not get last price for ticker {}.".format(ticker))
+                    last_date_price = first_date_price
+
+            backtest_info['portfolio_data'][ticker] = first_date_price
             backtest_info['portfolio_data'][ticker].update(last_date_price)
 
         # compute return for each holding
@@ -214,7 +217,7 @@ class Portfolio:
 
             backtest_info['portfolio_data'][ticker]['return_percentage'] = \
                 (100 * backtest_info['portfolio_data'][ticker][end_ts] / backtest_info['portfolio_data'][ticker][
-                    start_ts]) - 100
+                    start_ts]) - 100 if backtest_info['portfolio_data'][ticker][start_ts] else 0
 
         # compute total return
         backtest_info["total_return_percentage"] = round(
