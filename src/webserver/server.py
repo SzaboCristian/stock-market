@@ -1,5 +1,5 @@
 from webserver.flask_rest import FlaskApp, FlaskRestPlusApi
-from webserver.routes.authentication import RouteLogin, RouteRegister
+from webserver.routes.authentication import RouteLogin
 from webserver.routes.investment_calculator import RouteInvestmentCalculatorCompoundInterest
 from webserver.routes.portfolio import RoutePortfolio, RouteBacktest
 from webserver.routes.stock_prices import RouteStockPrices
