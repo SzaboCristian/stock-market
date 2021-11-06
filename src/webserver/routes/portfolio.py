@@ -10,6 +10,7 @@ import time
 from flask_restplus import Resource
 
 from webserver import decorators
+from webserver.core.consts import TIME_RANGES
 from webserver.core.portfolio_management import PortfolioManagementAPI
 from webserver.flask_rest import FlaskRestPlusApi
 from webserver.responses import response_400, response
@@ -128,7 +129,12 @@ class RouteBacktest(Resource):
     @api.doc(params={
         "portfolio_id": api_param_query(required=True,
                                         description="Portfolio id"),
-        "start_ts": api_param_query(required=False, description="Start timestamp", default=FIVE_YEARS_TS),
+        "start_ts": api_param_query(required=False, description="Start timestamp"),
+        "start": api_param_query(required=False,
+                                 description="Time range start",
+                                 enum=["LAST_WEEK", "LAST_MONTH", "MTD", "LAST_YEAR", "YTD", "LAST_5_YEARS",
+                                       "ALL"],
+                                 default="LAST_5_YEARS"),
         "end_ts": api_param_query(required=False, description="End ts", default=int(time.time()))
     })
     @api.doc(responses={
@@ -145,11 +151,14 @@ class RouteBacktest(Resource):
             return response_400(msg)
 
         start_ts = get_request_parameter('start_ts', required=False, expected_type=int)
-        if not start_ts:
-            start_ts = FIVE_YEARS_TS
+        start = get_request_parameter(name="start", expected_type=str, required=False) or "LAST_5_YEARS"
+        if start_ts is None:
+            if start not in TIME_RANGES:
+                return response_400("Invalid time range")
+            start_ts = TIME_RANGES[start]
 
-        end_ts = get_request_parameter('end_ts', required=False, expected_type=int)
-        if not end_ts:
+        end_ts = get_request_parameter(name='end_ts', expected_type=int, required=False)
+        if end_ts is None:
             end_ts = int(time.time())
 
         return response(*PortfolioManagementAPI.backtest_portfolio(user_id=current_user.public_id,
