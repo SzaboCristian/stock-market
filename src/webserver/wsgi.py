@@ -22,7 +22,7 @@ db.init_app(flask_app)
 db.create_all()
 
 if __name__ == '__main__':
-    # create crcrc inserter polling thread - only when run without gunicorn; thread started with gunicorn from
+    # create stock prices updater thread - only when run without gunicorn; thread started with gunicorn from
     # gunicorn.conf.py
     stock_prices_updater_thread = Thread(target=stock_prices_updater_task)
     stock_prices_updater_thread.setDaemon(True)
