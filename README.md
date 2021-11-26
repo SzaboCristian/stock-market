@@ -30,27 +30,27 @@
     2. https://docs.docker.com/compose/install/
 
 
-4. Start elasticsearch (from src)
+4. Create .env file following .env\_template (default FLASK\_SECRET=thisissecret)
+
+
+5. Update docker-compose.yml volume mappings (set project path on local pc)
+
+
+6. Start elasticsearch (from src)
     1. docker-compose up elasticsearch
 
 
-5. Start kibana (from src)
+7. Start kibana (from src)
     1. docker-compose up kibana
 
 
-6. Download datasets from  https://mega.nz/folder/kchWnKaZ#oQSQyIU4QxGBSVmEjsLaTQ
+8. Download datasets from  https://mega.nz/folder/kchWnKaZ#oQSQyIU4QxGBSVmEjsLaTQ
     1. save files to stock-market/data
 
 
-7. Import datasets (from src)
+9. Import datasets (from src, with project root set to src)
     1. python3.6 scripts/init_es_database/main.py
     2. python3.6 scripts/populate_es_database/main.py
-   
-
-8. Create .env file following .env\_template (default FLASK\_SECRET=thisissecret)
-
-
-9. Update docker-compose.yml volume mappings (set project path on local pc)
 
 
 10. Start webserver
