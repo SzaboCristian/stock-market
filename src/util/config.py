@@ -25,7 +25,7 @@ DATASET_STOCK_PRICES = os.path.join(PROJECT_ROOT, "data", "dataset_stock_prices.
 
 ES_INDEX_STOCKS = "stocks"
 ES_INDEX_STOCK_PRICES = "stock_prices"
-ES_INDEX_PORTFOLIOS = "user_portofolios"
+ES_INDEX_PORTFOLIOS = "user_portfolios"
 
 DOCKER_LOG_DIR = "/usr/flask-app/logs"
 DOCKER_WEB_REQUESTS_LOGS_FILENAME = "webserver_requests.log"
