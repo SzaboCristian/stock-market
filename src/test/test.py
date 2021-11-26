@@ -14,7 +14,7 @@ Logger.set_file_logging(file_name="test_apis.log")
 
 from test.cases.api.test_stocks import TestStocksAPI
 from test.cases.api.test_stock_prices import TestStockPricesAPI
-from test.cases.api.test_portfolio import TestPortofolioAPI
+from test.cases.api.test_portfolio import TestPortfolioAPI
 from test.cases.api.test_investement_calculator import TestInvestmentCalculatorAPI
 
 if __name__ == '__main__':
