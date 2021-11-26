@@ -1,6 +1,7 @@
 import unittest
 
 from test.base import InterfaceTestAPI
+from webserver.core.consts import TIME_RANGES
 from webserver.core.stock_prices_management import StockPricesManagementAPI
 
 
@@ -71,7 +72,7 @@ class TestStockPricesAPI(unittest.TestCase, InterfaceTestAPI):
 
     def __test_valid_params_get_stock_pricess(self) -> None:
         status, data, msg = StockPricesManagementAPI.get_price_history_for_ticker(ticker=self.test_ticker,
-                                                                                  start='LAST_YEAR')
+                                                                                  start_ts=TIME_RANGES['LAST_YEAR'])
         self.assertEqual(status, 200)
         self.assertTrue(data)
         self.assertEqual(msg, "OK")
@@ -85,7 +86,7 @@ class TestStockPricesAPI(unittest.TestCase, InterfaceTestAPI):
     def __test_valid_params_delete_stock_prices(self) -> None:
         # get stock prices
         status, data, msg = StockPricesManagementAPI.get_price_history_for_ticker(ticker=self.test_ticker,
-                                                                                  start='LAST_YEAR')
+                                                                                  start_ts=TIME_RANGES['LAST_YEAR'])
         self.assertEqual(status, 200)
         self.assertTrue(data)
         self.assertEqual(msg, "OK")
@@ -98,7 +99,7 @@ class TestStockPricesAPI(unittest.TestCase, InterfaceTestAPI):
 
         # check stock prices deleted
         status, data, msg = StockPricesManagementAPI.get_price_history_for_ticker(ticker=self.test_ticker,
-                                                                                  start='LAST_YEAR')
+                                                                                  start_ts=TIME_RANGES['LAST_YEAR'])
         self.assertEqual(status, 404)
         self.assertFalse(data)
         self.assertEqual(msg, "No price history for ticker {} for specified time range.".format(self.test_ticker))
