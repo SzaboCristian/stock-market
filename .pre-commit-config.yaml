@@ -9,6 +9,4 @@ repos:
     rev: v2.17.5
     hooks:
     -   id: pylint
-        args: ['--rcfile', '/home/bomfly/Desktop/Webapp_project_finance/stock-market/src/.pylintrc']
-
 
