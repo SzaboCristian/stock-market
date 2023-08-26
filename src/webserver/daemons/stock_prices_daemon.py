@@ -2,9 +2,6 @@
 Daemon that keeps stock_prices index up to date. Historical price data is gathered using yahoofinancials library.
 """
 
-__version__ = "0.0.1"
-__author__ = "Szabo Cristian"
-
 import datetime
 import time
 
@@ -13,8 +10,9 @@ import pytz
 from util import config
 from util.elasticsearch.elasticsearch_dbi import ElasticsearchDBI
 from util.logger.logger import Logger
-from util.utils import get_all_tickers, get_last_price_date_for_tickers, yf_get_historical_price_data_for_ticker, \
-    DEFAULT_LAST_PRICE_DATE
+from util.utils import (DEFAULT_LAST_PRICE_DATE, get_all_tickers,
+                        get_last_price_date_for_tickers,
+                        yf_get_historical_price_data_for_ticker)
 
 _ONE_HOUR = 3600
 _ONE_DAY = 24 * _ONE_HOUR

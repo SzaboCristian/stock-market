@@ -2,9 +2,6 @@
 Stock management APIs.
 """
 
-__version__ = "0.0.1"
-__author__ = "Szabo Cristian"
-
 from util import config
 from util.elasticsearch.elasticsearch_dbi import ElasticsearchDBI
 from util.utils import EXCHANGE_NAMES, yf_get_info_for_ticker

@@ -2,13 +2,11 @@
 Elasticsearch Database Interface class.
 """
 
-__version__ = "0.0.1"
-__author__ = "Szabo Cristian"
-
 import logging
 import time
 
-from elasticsearch import Elasticsearch, ElasticsearchException, helpers, NotFoundError, ConflictError
+from elasticsearch import (ConflictError, Elasticsearch,
+                           ElasticsearchException, NotFoundError, helpers)
 
 from util.logger.logger import Logger
 

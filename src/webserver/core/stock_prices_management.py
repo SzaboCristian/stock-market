@@ -2,16 +2,15 @@
 Stock management APIs.
 """
 
-__version__ = "0.0.1"
-__author__ = "Szabo Cristian"
-
 import time
 from datetime import datetime
 
 from util import config
 from util.elasticsearch.elasticsearch_dbi import ElasticsearchDBI
-from util.utils import DEFAULT_LAST_PRICE_DATE, yf_get_historical_price_data_for_ticker, get_last_price_date_for_ticker
-from webserver.core.consts import TIME_RANGES
+from util.utils import (DEFAULT_LAST_PRICE_DATE,
+                        get_last_price_date_for_ticker,
+                        yf_get_historical_price_data_for_ticker)
+from webserver.constants import TIME_RANGES
 from webserver.decorators import fails_safe_request
 
 

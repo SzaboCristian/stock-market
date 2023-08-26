@@ -1,9 +1,9 @@
-from abc import abstractmethod, ABC
+from abc import ABC, abstractmethod
 
 
 class InterfaceTestAPI(ABC):
     """
-    All test cases should cover at least these 3 scenarios.
+    All tests cases should cover at least these 3 scenarios.
     """
 
     @abstractmethod

@@ -2,18 +2,16 @@
 API Route class.
 """
 
-__version__ = "0.0.1"
-__author__ = "Szabo Cristian"
-
 from flask_restplus import Resource
 from werkzeug.security import generate_password_hash
 
 from webserver import decorators
 from webserver.core.users_management import UsersManagementAPI
 from webserver.flask_rest import FlaskRestPlusApi
-from webserver.responses import response_400, response
+from webserver.responses import response, response_400
 from webserver.routes.authentication import token_required
-from webserver.routes.utils import api_param_form, get_request_parameter, api_param_query
+from webserver.routes.utils import (api_param_form, api_param_query,
+                                    get_request_parameter)
 
 api = FlaskRestPlusApi.get_instance()
 

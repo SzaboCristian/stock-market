@@ -1,6 +1,6 @@
 import unittest
 
-from test.base import InterfaceTestAPI
+from tests.unit.base import InterfaceTestAPI
 from webserver.core.investment_calculator import InvestmentCalculatorAPI
 
 

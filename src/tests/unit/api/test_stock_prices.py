@@ -1,7 +1,7 @@
 import unittest
 
-from test.base import InterfaceTestAPI
-from webserver.core.consts import TIME_RANGES
+from tests.unit.base import InterfaceTestAPI
+from webserver.constants import TIME_RANGES
 from webserver.core.stock_prices_management import StockPricesManagementAPI
 
 
