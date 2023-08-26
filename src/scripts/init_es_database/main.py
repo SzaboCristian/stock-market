@@ -1,11 +1,12 @@
 """
 Script initializes ES indices. Mappings are specified in es_mappings.py file.
 """
-__version__ = '0.0.1'
+__version__ = '1.0.0'
 __author__ = 'Szabo Cristian'
 
-from scripts.init_es_database.es_mappings import ES_INDEX_STOCKS_MAPPINGS, ES_INDEX_STOCK_PRICES_MAPPINGS, \
-    ES_INDEX_PORTFOLIOS_MAPPINGS
+from scripts.init_es_database.es_mappings import (
+    ES_INDEX_PORTFOLIOS_MAPPINGS, ES_INDEX_STOCK_PRICES_MAPPINGS,
+    ES_INDEX_STOCKS_MAPPINGS)
 from util import config
 from util.elasticsearch.elasticsearch_dbi import ElasticsearchDBI
 from util.logger.logger import Logger

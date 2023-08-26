@@ -12,11 +12,12 @@ from util.logger.logger import Logger
 
 Logger.set_file_logging(file_name="test_apis.log")
 
-from test.cases.api.test_stocks import TestStocksAPI
-from test.cases.api.test_stock_prices import TestStockPricesAPI
+from test.cases.api.test_investement_calculator import \
+    TestInvestmentCalculatorAPI
 from test.cases.api.test_portfolio import TestPortfolioAPI
-from test.cases.api.test_investement_calculator import TestInvestmentCalculatorAPI
+from test.cases.api.test_stock_prices import TestStockPricesAPI
+from test.cases.api.test_stocks import TestStocksAPI
 
 if __name__ == '__main__':
-    # run from src level as >> python3.6  -m pytest test/test.py
+    # run from src level as >> python3.6  -m pytest tests/tests.py
     unittest.main()

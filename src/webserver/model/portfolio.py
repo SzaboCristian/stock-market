@@ -10,7 +10,6 @@ from typing import List
 from util.elasticsearch.es_stock_prices import ESStockPrices
 from util.logger.logger import Logger
 
-
 #####################
 # Custom Exceptions #
 #####################

@@ -2,9 +2,6 @@
 API Route class.
 """
 
-__version__ = "0.0.1"
-__author__ = "Szabo Cristian"
-
 import datetime
 from functools import wraps
 
@@ -14,7 +11,7 @@ from flask_restplus import Resource
 from werkzeug.security import check_password_hash
 
 from webserver import decorators
-from webserver.flask_rest import FlaskRestPlusApi, FlaskApp
+from webserver.flask_rest import FlaskApp, FlaskRestPlusApi
 from webserver.model.user import User
 from webserver.responses import response
 

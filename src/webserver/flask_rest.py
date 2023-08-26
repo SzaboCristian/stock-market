@@ -2,13 +2,11 @@
 Wrapper classes for flask.Flask and flask_restplus.Api
 """
 
-__version__ = "0.0.1"
-__author__ = "Szabo Cristian"
-
 import os
 
 from flask import Flask
-from flask_restplus import Api as RestPlusBaseApi, Resource
+from flask_restplus import Api as RestPlusBaseApi
+from flask_restplus import Resource
 
 
 class FlaskApp:

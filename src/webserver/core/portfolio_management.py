@@ -2,9 +2,10 @@ import time
 
 from util import config
 from util.elasticsearch.elasticsearch_dbi import ElasticsearchDBI
-from webserver.core.consts import TIME_RANGES
+from webserver.constants import TIME_RANGES
 from webserver.decorators import fails_safe_request
-from webserver.model.portfolio import Portfolio, PortfolioException, AllocationException, Allocation
+from webserver.model.portfolio import (Allocation, AllocationException,
+                                       Portfolio, PortfolioException)
 from webserver.model.user import User
 
 

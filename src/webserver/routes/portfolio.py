@@ -2,9 +2,6 @@
 API Route class.
 """
 
-__version__ = "0.0.1"
-__author__ = "Szabo Cristian"
-
 import time
 
 from flask_restplus import Resource
@@ -13,9 +10,10 @@ from webserver import decorators
 from webserver.core.consts import TIME_RANGES
 from webserver.core.portfolio_management import PortfolioManagementAPI
 from webserver.flask_rest import FlaskRestPlusApi
-from webserver.responses import response_400, response
+from webserver.responses import response, response_400
 from webserver.routes.authentication import token_required
-from webserver.routes.utils import api_param_query, api_param_form, get_request_parameter
+from webserver.routes.utils import (api_param_form, api_param_query,
+                                    get_request_parameter)
 
 api = FlaskRestPlusApi.get_instance()
 

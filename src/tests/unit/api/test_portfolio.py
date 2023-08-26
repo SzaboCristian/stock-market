@@ -1,13 +1,13 @@
 import unittest
 
-from test.base import InterfaceTestAPI
+from tests.unit.base import InterfaceTestAPI
 from webserver.core.portfolio_management import PortfolioManagementAPI
 
 
 class TestPortfolioAPI(unittest.TestCase, InterfaceTestAPI):
 
     def setUp(self) -> None:
-        self.test_user_id = 'test-user-id'
+        self.test_user_id = 'tests-user-id'
         self.portfolio_ids = []
 
     def tearDown(self) -> None:
@@ -75,7 +75,7 @@ class TestPortfolioAPI(unittest.TestCase, InterfaceTestAPI):
         self.assertEqual(msg, "Server error. Please contact administrator.")
 
     def __test_bad_params_get_portfolios(self) -> None:
-        status, data, msg = PortfolioManagementAPI.get_portfolio(user_id="test", portfolio_id={"invalid": "type"})
+        status, data, msg = PortfolioManagementAPI.get_portfolio(user_id="tests", portfolio_id={"invalid": "type"})
         self.assertEqual(status, 500)
         self.assertFalse(data)
         self.assertEqual(msg, "Server error. Please contact administrator.")
