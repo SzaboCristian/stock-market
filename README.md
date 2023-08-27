@@ -7,16 +7,16 @@
 ### Requirements:
 
 * Linux based OS (ex. Ubuntu)
-* Python >= 3.6
+* Python >= 3.8
 * Docker + docker-compose
 * Datasets: https://mega.nz/folder/kchWnKaZ#oQSQyIU4QxGBSVmEjsLaTQ
 
 ### Install steps:
 
-1. Install Python3.6 + pip + poetry
+1. Install Python3.8 + pip + poetry
     1. sudo apt-get update
-    2. sudo apt-get install python3.6
-    3. python3.6 --version
+    2. sudo apt-get install python3.8
+    3. python3.8 --version
     4. sudo apt install python3-pip
     5. pip3 --version
     6. pip3 install poetry 
@@ -43,8 +43,8 @@
     1. save files to stock-market/data
 
 9. Import datasets (from src, with project root set to src)
-    1. python3.6 scripts/init_es_database/main.py
-    2. python3.6 scripts/populate_es_database/main.py
+    1. python3.8 scripts/init_es_database/main.py
+    2. python3.8 scripts/populate_es_database/main.py
 
 10. Start webserver
     1. docker-compose up --build webserver
