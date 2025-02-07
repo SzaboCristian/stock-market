@@ -21,12 +21,18 @@ db.app = flask_app
 db.init_app(flask_app)
 db.create_all()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # create and start stock prices updater thread - only when run without gunicorn; thread started with gunicorn from
     # gunicorn.conf.py
-    stock_prices_updater_thread = Thread(target=stock_prices_updater_task)
-    stock_prices_updater_thread.setDaemon(True)
-    stock_prices_updater_thread.start()
+    # TODO - daemon bug - runs multiple times and takes too many resources, replace with cron outside ws
+    # stock_prices_updater_thread = Thread(target=stock_prices_updater_task)
+    # stock_prices_updater_thread.setDaemon(True)
+    # stock_prices_updater_thread.start()
 
     # run app - only when run without gunicorn
-    flask_app.run(threaded=True, debug=(os.getenv("DEPLOYED") == "False"), host="0.0.0.0", port=5000)
+    flask_app.run(
+        threaded=True,
+        debug=(os.getenv("DEPLOYED") == "False"),
+        host="0.0.0.0",
+        port=8080,
+    )

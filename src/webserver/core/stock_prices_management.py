@@ -7,18 +7,21 @@ from datetime import datetime
 
 from util import config
 from util.elasticsearch.elasticsearch_dbi import ElasticsearchDBI
-from util.utils import (DEFAULT_LAST_PRICE_DATE,
-                        get_last_price_date_for_ticker,
-                        yf_get_historical_price_data_for_ticker)
+from util.utils import (
+    DEFAULT_LAST_PRICE_DATE,
+    get_last_price_date_for_ticker,
+    yf_get_historical_price_data_for_ticker,
+)
 from webserver.constants import TIME_RANGES
 from webserver.decorators import fails_safe_request
 
 
 class StockPricesManagementAPI:
-
     @staticmethod
     @fails_safe_request
-    def get_price_history_for_ticker(ticker, start_ts=TIME_RANGES["LAST_WEEK"], end_ts=int(time.time())) -> tuple:
+    def get_price_history_for_ticker(
+        ticker, start_ts=TIME_RANGES["LAST_WEEK"], end_ts=int(time.time())
+    ) -> tuple:
         """
         Get stock price history since start until end for specified ticker.
         @param ticker: string
@@ -26,26 +29,43 @@ class StockPricesManagementAPI:
         @param end_ts: end timestamp
         @return: tuple
         """
-        es_dbi = ElasticsearchDBI.get_instance(config.ELASTICSEARCH_HOST, config.ELASTICSEARCH_PORT)
+        es_dbi = ElasticsearchDBI.get_instance(
+            config.ELASTICSEARCH_HOST, config.ELASTICSEARCH_PORT
+        )
 
         price_history = {}
-        for es_price_doc in es_dbi.scroll_search_documents_generator(config.ES_INDEX_STOCK_PRICES, query_body={
-            "query": {
-                "bool": {
-                    "must": [
-                        {"term": {"ticker": ticker.lower()}},
-                        {"range": {"date": {"gte": start_ts, "lte": end_ts}}}]
+        for es_price_doc in es_dbi.scroll_search_documents_generator(
+            config.ES_INDEX_STOCK_PRICES,
+            query_body={
+                "query": {
+                    "bool": {
+                        "must": [
+                            {"term": {"ticker": ticker.lower()}},
+                            {"range": {"date": {"gte": start_ts, "lte": end_ts}}},
+                        ]
+                    }
                 }
-            }
-        }):
+            },
+        ):
             if es_price_doc["_source"]["ticker"].lower() == ticker.lower():
-                date = datetime.fromtimestamp(es_price_doc["_source"].get("date", None)).strftime("%Y-%m-%d")
+                date = datetime.fromtimestamp(
+                    es_price_doc["_source"].get("date", None)
+                ).strftime("%Y-%m-%d")
                 price_history[date] = es_price_doc["_source"]
 
         if not price_history:
-            return 404, {}, "No price history for ticker {} for specified time range.".format(ticker)
+            return (
+                404,
+                {},
+                "No price history for ticker {} for specified time range.".format(
+                    ticker
+                ),
+            )
 
-        price_history = {k: v for k, v in sorted(price_history.items(), key=lambda x: x[0], reverse=True)}
+        price_history = {
+            k: v
+            for k, v in sorted(price_history.items(), key=lambda x: x[0], reverse=True)
+        }
         return 200, price_history, "OK"
 
     @staticmethod
@@ -58,7 +78,9 @@ class StockPricesManagementAPI:
         """
 
         # connect to es
-        es_dbi = ElasticsearchDBI.get_instance(config.ELASTICSEARCH_HOST, config.ELASTICSEARCH_PORT)
+        es_dbi = ElasticsearchDBI.get_instance(
+            config.ELASTICSEARCH_HOST, config.ELASTICSEARCH_PORT
+        )
 
         # check ticker in stocks index
         if not es_dbi.get_document_by_id(config.ES_INDEX_STOCKS, _id=ticker.upper()):
@@ -73,7 +95,8 @@ class StockPricesManagementAPI:
         prices = yf_get_historical_price_data_for_ticker(
             ticker=ticker,
             start_date=start_date,
-            end_date=datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d"))
+            end_date=datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d"),
+        )
 
         if not prices:
             return 404, {}, "No price history found for ticker {}.".format(ticker)
@@ -81,8 +104,7 @@ class StockPricesManagementAPI:
         # index prices
         actions = []
         for price in prices:
-            actions.append({"_index": config.ES_INDEX_STOCK_PRICES,
-                            "_source": price})
+            actions.append({"_index": config.ES_INDEX_STOCK_PRICES, "_source": price})
             # do bulk insert
             if len(actions) >= 1000:
                 es_dbi.bulk(actions, chunk_size=len(actions), max_retries=3)
@@ -104,19 +126,26 @@ class StockPricesManagementAPI:
         """
 
         # connect to es
-        es_dbi = ElasticsearchDBI.get_instance(config.ELASTICSEARCH_HOST, config.ELASTICSEARCH_PORT)
+        es_dbi = ElasticsearchDBI.get_instance(
+            config.ELASTICSEARCH_HOST, config.ELASTICSEARCH_PORT
+        )
 
         # delete price history
         actions = []
         for es_price_history_document in es_dbi.scroll_search_documents_generator(
-                config.ES_INDEX_STOCK_PRICES,
-                query_body={
-                    "query": {"bool": {"must": [{"term": {"ticker": ticker.lower()}}]}}
-                }):
+            config.ES_INDEX_STOCK_PRICES,
+            query_body={
+                "query": {"bool": {"must": [{"term": {"ticker": ticker.lower()}}]}}
+            },
+        ):
             if es_price_history_document["_source"]["ticker"].upper() == ticker:
-                actions.append({"_index": config.ES_INDEX_STOCK_PRICES,
-                                "_op_type": "delete",
-                                "_id": es_price_history_document["_id"]})
+                actions.append(
+                    {
+                        "_index": config.ES_INDEX_STOCK_PRICES,
+                        "_op_type": "delete",
+                        "_id": es_price_history_document["_id"],
+                    }
+                )
 
         if not actions:
             return 404, False, "No price history found for ticker {}".format(ticker)

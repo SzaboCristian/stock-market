@@ -13,18 +13,21 @@ class FlaskApp:
     app_instance = None
 
     def __init__(self):
-        raise Exception('FlaskApp constructor called directly. Use get_instance() method.')
+        raise Exception(
+            "FlaskApp constructor called directly. Use get_instance() method."
+        )
 
     @staticmethod
     def get_instance() -> Flask:
         if FlaskApp.app_instance is None:
-            FlaskApp.app_instance = Flask(__name__,
-                                          static_url_path="",
-                                          static_folder=".",
-                                          template_folder=".")
+            FlaskApp.app_instance = Flask(
+                __name__, static_url_path="", static_folder=".", template_folder="."
+            )
             FlaskApp.app_instance.url_map.strict_slashes = False
             FlaskApp.app_instance.config["SECRET_KEY"] = os.environ["FLASK_SECRET"]
-            FlaskApp.app_instance.config["SQLALCHEMY_DATABASE_URI"] = f'sqlite://///usr/flask-app/data/users.sqlite'
+            FlaskApp.app_instance.config[
+                "SQLALCHEMY_DATABASE_URI"
+            ] = f"sqlite://///usr/flask-app/data/users.sqlite"
             FlaskApp.app_instance.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
         return FlaskApp.app_instance
@@ -40,9 +43,9 @@ class FlaskRestPlusApi(RestPlusBaseApi):
     @staticmethod
     def get_instance():
         if FlaskRestPlusApi.api_instance is None:
-            FlaskRestPlusApi.api_instance = FlaskRestPlusApi(app=FlaskApp.get_instance(),
-                                                             version='0.0.1',
-                                                             prefix='/api/v1')
+            FlaskRestPlusApi.api_instance = FlaskRestPlusApi(
+                app=FlaskApp.get_instance(), version="0.0.1", prefix="/api/v1"
+            )
         return FlaskRestPlusApi.api_instance
 
     def add_resource(self, cls: Resource, *args):

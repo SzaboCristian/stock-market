@@ -9,7 +9,9 @@ class SQLAlchemyDB:
     db_instance = None
 
     def __init__(self):
-        raise Exception('FlaskApp constructor called directly. Use get_instance() method.')
+        raise Exception(
+            "FlaskApp constructor called directly. Use get_instance() method."
+        )
 
     @staticmethod
     def get_instance() -> SQLAlchemy:

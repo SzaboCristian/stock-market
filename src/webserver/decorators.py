@@ -26,7 +26,9 @@ def webserver_logger(func):
     @wraps(func)
     def decorated(*args, **kwargs):
         Logger.LOG_DIR = config.DOCKER_LOG_DIR
-        logger = Logger.get_logger("webserver_logger", config.DOCKER_WEB_REQUESTS_LOGS_FILENAME)
+        logger = Logger.get_logger(
+            "webserver_logger", config.DOCKER_WEB_REQUESTS_LOGS_FILENAME
+        )
 
         client_ip = request.access_route[-1]
         if client_ip in config.NO_LOG_IPS:
@@ -43,18 +45,18 @@ def webserver_logger(func):
 
         # get args
         try:
-            args_json = json.dumps(list(request.args.items()), separators=(',', ':'))
+            args_json = json.dumps(list(request.args.items()), separators=(",", ":"))
         except:
             args_json = json.dumps([])
 
         try:
-            form_json = json.dumps(list(request.form.items()), separators=(',', ':'))
+            form_json = json.dumps(list(request.form.items()), separators=(",", ":"))
         except:
             form_json = json.dumps([])
 
         try:
             body_json = process_body_json(request.get_json())
-            body_json = json.dumps(body_json, separators=(',', ':'))
+            body_json = json.dumps(body_json, separators=(",", ":"))
         except:
             body_json = json.dumps({})
 
@@ -89,10 +91,18 @@ def webserver_logger(func):
             response_size = -1
             status_code = -1
 
-        message_info = dict(timestamp=request_timestamp, ip=client_ip, method=request.method, url=request.url,
-                            args=args_json, form=form_json, body=body_json,
-                            request_time=" {0:.3f}".format(request_end - request_start),
-                            response_status=status_code, response_size="{0:.2f}KB".format(response_size / 1024))
+        message_info = dict(
+            timestamp=request_timestamp,
+            ip=client_ip,
+            method=request.method,
+            url=request.url,
+            args=args_json,
+            form=form_json,
+            body=body_json,
+            request_time=" {0:.3f}".format(request_end - request_start),
+            response_status=status_code,
+            response_size="{0:.2f}KB".format(response_size / 1024),
+        )
         logger.info(json.dumps(message_info))
         return response
 

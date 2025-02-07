@@ -2,7 +2,6 @@
 Logger class.
 """
 
-
 import logging
 import os
 import sys
@@ -44,7 +43,9 @@ class Logger:
         """
 
         if not file_name and no_stdout:
-            raise Exception("No log location. Either specify file_name or set no_stdout to False")
+            raise Exception(
+                "No log location. Either specify file_name or set no_stdout to False"
+            )
 
         if logger_name in Logger.LOGGER_INSTANCES:
             return Logger.LOGGER_INSTANCES[logger_name]
@@ -55,8 +56,11 @@ class Logger:
         if file_name and file_name[-4:] != ".log":
             file_name = r"{}.log".format(file_name)
 
-        file_handler = RotatingFileHandler(
-            os.path.join(Logger.LOG_DIR, file_name)) if file_name else logging.StreamHandler(sys.stdout)
+        file_handler = (
+            RotatingFileHandler(os.path.join(Logger.LOG_DIR, file_name))
+            if file_name
+            else logging.StreamHandler(sys.stdout)
+        )
         file_handler.setFormatter(log_formatter)
         logger.addHandler(file_handler)
 
@@ -136,13 +140,17 @@ class Logger:
         """
         try:
             from flask import request
+
             flask_message = f"{request.remote_addr} "
         except:
             flask_message = ""
 
         if logger_type:
             Logger.FILE.write(
-                f"{flask_message}" + f"[{logger_type:7s} {Logger.datetime_string()}] {message}" + line_end)
+                f"{flask_message}"
+                + f"[{logger_type:7s} {Logger.datetime_string()}] {message}"
+                + line_end
+            )
         else:
             Logger.FILE.write("{0}".format(message) + line_end)
 

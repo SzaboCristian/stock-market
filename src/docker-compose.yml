@@ -5,7 +5,7 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.5.0
     container_name: container_elasticsearch_7_5_0
     ports:
-      - 9200:9200
+      - "9200:9200"  # Expose port 9200 to host
     networks:
       - custom_network
     environment:
@@ -20,11 +20,9 @@ services:
     image: docker.elastic.co/kibana/kibana:7.5.0
     container_name: container_kibana_7_5_0
     ports:
-      - 5603:5601
+      - "5601:5601"  # Expose port 5601 to host for Kibana UI
     networks:
       - custom_network
-    links:
-      - elasticsearch
     depends_on:
       - elasticsearch
     environment:
@@ -34,26 +32,25 @@ services:
     image: image_stock_market_webserver
     container_name: container_stock_market_webserver
     build: .
-    expose:
-      - 5000
+    ports:
+      - "8080:8080"  # Expose port 8080 to the host
+    networks:
+      - custom_network  # Connect to custom network to access Elasticsearch
     environment:
-      elasticsearch_host: ${ELASTIC_HOST}
-      elasticsearch_port: ${ELASTIC_PORT}
-      kibana_host: ${KIBANA_HOST}
-      kibana_port: ${KIBANA_PORT}
+      elasticsearch_host: container_elasticsearch_7_5_0  # Use the container name of Elasticsearch
+      elasticsearch_port: 9200
+      kibana_host: container_kibana_7_5_0
+      kibana_port: 5601
     env_file:
       - .env
     volumes:
-      - /home/bomfly/Desktop/Webapp_project_finance/stock-market/data:/usr/flask-app/data
-      - /home/bomfly/Desktop/Webapp_project_finance/stock-market/logs:/usr/flask-app/logs
-    network_mode: "host"
-
-
+      - /Users/bomfly/Projects/stock-market/data:/usr/flask-app/data
+      - /Users/bomfly/Projects/stock-market/logs:/usr/flask-app/logs
 
 networks:
   custom_network:
     name: "custom_network"
-    driver: "bridge"
+    driver: "bridge"  # Default bridge mode for inter-container communication
 
 volumes:
   volume-container-elasticsearch-data-stock-market:

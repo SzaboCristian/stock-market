@@ -18,7 +18,9 @@ class TestElasticsearchDBI(unittest.TestCase):
         Create ElasticsearchDBI object + setup test index name.
         @return: None
         """
-        self.es_dbi = ElasticsearchDBI.get_instance(config.ELASTICSEARCH_HOST, config.ELASTICSEARCH_PORT)
+        self.es_dbi = ElasticsearchDBI.get_instance(
+            config.ELASTICSEARCH_HOST, config.ELASTICSEARCH_PORT
+        )
         self.test_index_name = "test_index"
 
     def tearDown(self) -> None:
@@ -89,11 +91,7 @@ class TestElasticsearchDBI(unittest.TestCase):
         @return: None
         """
 
-        settings = {
-            "settings": {
-                "refresh_interval": "1s"
-            }
-        }
+        settings = {"settings": {"refresh_interval": "1s"}}
         if not self.es_dbi.index_exists(self.test_index_name):
             self.es_dbi.create_index(self.test_index_name)
 
@@ -109,12 +107,8 @@ class TestElasticsearchDBI(unittest.TestCase):
         mapping = {
             "mappings": {
                 "properties": {
-                    "some_string": {
-                        "type": "text"
-                    },
-                    "some_bool": {
-                        "type": "boolean"
-                    }
+                    "some_string": {"type": "text"},
+                    "some_bool": {"type": "boolean"},
                 }
             }
         }
@@ -125,12 +119,22 @@ class TestElasticsearchDBI(unittest.TestCase):
         self.es_dbi.put_mapping(index=temp_test_index, mapping=mapping)
 
         # insert valid document
-        self.assertTrue(self.es_dbi.create_document(index=temp_test_index, _id=1, document={"some_string": "Hello",
-                                                                                            "some_bool": True}))
+        self.assertTrue(
+            self.es_dbi.create_document(
+                index=temp_test_index,
+                _id=1,
+                document={"some_string": "Hello", "some_bool": True},
+            )
+        )
 
         # try insert malformed document
-        self.assertFalse(self.es_dbi.create_document(index=temp_test_index, _id=1, document={"some_string": 100,
-                                                                                             "some_bool": "not_bool"}))
+        self.assertFalse(
+            self.es_dbi.create_document(
+                index=temp_test_index,
+                _id=1,
+                document={"some_string": 100, "some_bool": "not_bool"},
+            )
+        )
         # delete temp index
         self.es_dbi.delete_index(temp_test_index)
 
@@ -142,7 +146,9 @@ class TestElasticsearchDBI(unittest.TestCase):
 
         if not self.es_dbi.index_exists(self.test_index_name):
             self.es_dbi.create_index(self.test_index_name)
-        document_id = self.es_dbi.create_document(index=self.test_index_name, _id="test_id", document={"test": "value"})
+        document_id = self.es_dbi.create_document(
+            index=self.test_index_name, _id="test_id", document={"test": "value"}
+        )
         self.assertEqual(document_id, "test_id")
 
     def test_get_by_id(self) -> None:
@@ -151,8 +157,12 @@ class TestElasticsearchDBI(unittest.TestCase):
         @return: None
         """
 
-        document_id = self.es_dbi.create_document(index=self.test_index_name, _id="test_id", document={"test": "value"})
-        es_document = self.es_dbi.get_document_by_id(index=self.test_index_name, _id=document_id)
+        document_id = self.es_dbi.create_document(
+            index=self.test_index_name, _id="test_id", document={"test": "value"}
+        )
+        es_document = self.es_dbi.get_document_by_id(
+            index=self.test_index_name, _id=document_id
+        )
         self.assertTrue(es_document)
         self.assertEqual(es_document.get("_id", None), document_id)
 
@@ -162,13 +172,20 @@ class TestElasticsearchDBI(unittest.TestCase):
         @return: None
         """
 
-        document_id = self.es_dbi.create_document(index=self.test_index_name, _id="test_id", document={"test": "value"})
-        updated = self.es_dbi.update_document(index=self.test_index_name, _id=document_id,
-                                              document={"test": "new_value"})
+        document_id = self.es_dbi.create_document(
+            index=self.test_index_name, _id="test_id", document={"test": "value"}
+        )
+        updated = self.es_dbi.update_document(
+            index=self.test_index_name, _id=document_id, document={"test": "new_value"}
+        )
         self.assertTrue(updated)
-        updated_document = self.es_dbi.get_document_by_id(index=self.test_index_name, _id=document_id)
+        updated_document = self.es_dbi.get_document_by_id(
+            index=self.test_index_name, _id=document_id
+        )
         self.assertTrue(updated_document)
-        self.assertEqual(updated_document.get("_source", {}).get("test", None), "new_value")
+        self.assertEqual(
+            updated_document.get("_source", {}).get("test", None), "new_value"
+        )
 
     def test_delete_document(self) -> None:
         """
@@ -176,11 +193,17 @@ class TestElasticsearchDBI(unittest.TestCase):
         @return: None
         """
 
-        document_id = self.es_dbi.create_document(index=self.test_index_name, _id="test_id", document={"test": "value"})
+        document_id = self.es_dbi.create_document(
+            index=self.test_index_name, _id="test_id", document={"test": "value"}
+        )
         self.assertTrue(document_id)
-        deleted = self.es_dbi.delete_document(index=self.test_index_name, _id=document_id)
+        deleted = self.es_dbi.delete_document(
+            index=self.test_index_name, _id=document_id
+        )
         self.assertTrue(deleted)
-        deleted_document = self.es_dbi.get_document_by_id(index=self.test_index_name, _id=document_id)
+        deleted_document = self.es_dbi.get_document_by_id(
+            index=self.test_index_name, _id=document_id
+        )
         self.assertFalse(deleted_document)
 
     def test_mget_by_id(self) -> None:
@@ -189,11 +212,15 @@ class TestElasticsearchDBI(unittest.TestCase):
         @return: None
         """
 
-        document_id_1 = self.es_dbi.create_document(index=self.test_index_name, _id="test_id",
-                                                    document={"test": "value"})
-        document_id_2 = self.es_dbi.create_document(index=self.test_index_name, _id="test_id2",
-                                                    document={"test": "value2"})
-        documents = self.es_dbi.mget_documents_by_id(index=self.test_index_name, ids=[document_id_1, document_id_2])
+        document_id_1 = self.es_dbi.create_document(
+            index=self.test_index_name, _id="test_id", document={"test": "value"}
+        )
+        document_id_2 = self.es_dbi.create_document(
+            index=self.test_index_name, _id="test_id2", document={"test": "value2"}
+        )
+        documents = self.es_dbi.mget_documents_by_id(
+            index=self.test_index_name, ids=[document_id_1, document_id_2]
+        )
         self.assertTrue(documents)
         for document in documents:
             self.assertTrue(document["found"])
@@ -204,28 +231,38 @@ class TestElasticsearchDBI(unittest.TestCase):
         @return: None
         """
 
-        self.assertTrue(self.es_dbi.create_document(index=self.test_index_name,
-                                                    _id="test_id",
-                                                    document={"score": 100},
-                                                    refresh=True))
-        self.assertTrue(self.es_dbi.create_document(index=self.test_index_name,
-                                                    _id="test_id2",
-                                                    document={"score": 50},
-                                                    refresh=True))
+        self.assertTrue(
+            self.es_dbi.create_document(
+                index=self.test_index_name,
+                _id="test_id",
+                document={"score": 100},
+                refresh=True,
+            )
+        )
+        self.assertTrue(
+            self.es_dbi.create_document(
+                index=self.test_index_name,
+                _id="test_id2",
+                document={"score": 50},
+                refresh=True,
+            )
+        )
 
         # existing document
-        searched_documents = self.es_dbi.search_documents(index=self.test_index_name, query_body={
-            "query": {"bool": {"must": [{"term": {"score": 100}}]}}
-        })
+        searched_documents = self.es_dbi.search_documents(
+            index=self.test_index_name,
+            query_body={"query": {"bool": {"must": [{"term": {"score": 100}}]}}},
+        )
         self.assertTrue(searched_documents)
         self.assertTrue(searched_documents["hits"]["hits"])
         for searched_document in searched_documents["hits"]["hits"]:
             self.assertEqual(searched_document["_source"]["score"], 100)
 
         # non-existing document
-        searched_documents = self.es_dbi.search_documents(index=self.test_index_name, query_body={
-            "query": {"bool": {"must": [{"term": {"score": 75}}]}}
-        })
+        searched_documents = self.es_dbi.search_documents(
+            index=self.test_index_name,
+            query_body={"query": {"bool": {"must": [{"term": {"score": 75}}]}}},
+        )
         self.assertTrue(searched_documents)
         self.assertFalse(searched_documents["hits"]["hits"])
 
@@ -236,11 +273,17 @@ class TestElasticsearchDBI(unittest.TestCase):
         """
 
         at_least_one_doc = False
-        self.assertTrue(self.es_dbi.create_document(index=self.test_index_name,
-                                                    _id="test_id",
-                                                    document={"test": "value"},
-                                                    refresh=True))
-        for es_doc in self.es_dbi.scroll_search_documents_generator(index=self.test_index_name):
+        self.assertTrue(
+            self.es_dbi.create_document(
+                index=self.test_index_name,
+                _id="test_id",
+                document={"test": "value"},
+                refresh=True,
+            )
+        )
+        for es_doc in self.es_dbi.scroll_search_documents_generator(
+            index=self.test_index_name
+        ):
             at_least_one_doc = True
             self.assertTrue(es_doc)
             self.assertTrue(es_doc["_id"])
@@ -255,12 +298,16 @@ class TestElasticsearchDBI(unittest.TestCase):
 
         # bulk insert
         actions = [
-            {"_index": self.test_index_name,
-             "_id": "document_id_1",
-             "_source": {"test": "value"}},
-            {"_index": self.test_index_name,
-             "_id": "document_id_2",
-             "_source": {"test": "value"}},
+            {
+                "_index": self.test_index_name,
+                "_id": "document_id_1",
+                "_source": {"test": "value"},
+            },
+            {
+                "_index": self.test_index_name,
+                "_id": "document_id_2",
+                "_source": {"test": "value"},
+            },
         ]
         success, failed = self.es_dbi.bulk(actions=actions, chunk_size=len(actions))
         self.assertEqual(success, 2)
@@ -268,14 +315,18 @@ class TestElasticsearchDBI(unittest.TestCase):
 
         # bulk update
         actions = [
-            {"_op_type": "update",
-             "_index": self.test_index_name,
-             "_id": "document_id_1",
-             "doc": {"test": "value2"}},
-            {"_op_type": "update",
-             "_index": self.test_index_name,
-             "_id": "document_id_2",
-             "doc": {"test": "value3"}},
+            {
+                "_op_type": "update",
+                "_index": self.test_index_name,
+                "_id": "document_id_1",
+                "doc": {"test": "value2"},
+            },
+            {
+                "_op_type": "update",
+                "_index": self.test_index_name,
+                "_id": "document_id_2",
+                "doc": {"test": "value3"},
+            },
         ]
         success, failed = self.es_dbi.bulk(actions=actions, chunk_size=len(actions))
         self.assertEqual(success, 2)
@@ -283,12 +334,16 @@ class TestElasticsearchDBI(unittest.TestCase):
 
         # bulk delete
         actions = [
-            {"_op_type": "delete",
-             "_index": self.test_index_name,
-             "_id": "document_id_1"},
-            {"_op_type": "delete",
-             "_index": self.test_index_name,
-             "_id": "document_id_2"},
+            {
+                "_op_type": "delete",
+                "_index": self.test_index_name,
+                "_id": "document_id_1",
+            },
+            {
+                "_op_type": "delete",
+                "_index": self.test_index_name,
+                "_id": "document_id_2",
+            },
         ]
         success, failed = self.es_dbi.bulk(actions=actions, chunk_size=len(actions))
         self.assertEqual(success, 2)
