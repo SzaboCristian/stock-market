@@ -10,15 +10,16 @@ from util.logger.logger import Logger
 
 DEFAULT_LAST_PRICE_DATE = "2010-01-01"
 
-EXCHANGE_NAMES = {"NMS": "National Market System",
-                  "BTS": "BitShares BTS",
-                  "NGM": "Nordic Growth Market",
-                  "PCX": "Pacific Exchange",
-                  "PNK": "Pink Sheets (OTC)",
-                  "NYQ": "New York Stock Exchange",
-                  "NCM": "NCM Nasdaq Commodities",
-                  "ASE": "Amman Stock Exchange"
-                  }
+EXCHANGE_NAMES = {
+    "NMS": "National Market System",
+    "BTS": "BitShares BTS",
+    "NGM": "Nordic Growth Market",
+    "PCX": "Pacific Exchange",
+    "PNK": "Pink Sheets (OTC)",
+    "NYQ": "New York Stock Exchange",
+    "NCM": "NCM Nasdaq Commodities",
+    "ASE": "Amman Stock Exchange",
+}
 
 
 def get_exchange_name(exchange) -> str:
@@ -49,7 +50,9 @@ def yf_get_info_for_ticker(ticker) -> dict:
     info["ticker"] = ticker
     info["names"] = [yf_ticker.info.get("longName", None)]
     short_name = yf_ticker.info.get("shortName", None)
-    if not info["names"] or (short_name and info["names"][0].lower() != short_name.lower()):
+    if not info["names"] or (
+        short_name and info["names"][0].lower() != short_name.lower()
+    ):
         info["names"].append(short_name.rstrip(" -"))
 
     info["description"] = yf_ticker.info.get("longBusinessSummary", None)
@@ -80,9 +83,11 @@ def yf_get_info_for_ticker(ticker) -> dict:
     return info
 
 
-def yf_get_historical_price_data_for_ticker(ticker,
-                                            start_date=DEFAULT_LAST_PRICE_DATE,
-                                            end_date=datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d")) -> list:
+def yf_get_historical_price_data_for_ticker(
+    ticker,
+    start_date=DEFAULT_LAST_PRICE_DATE,
+    end_date=datetime.fromtimestamp(time.time()).strftime("%Y-%m-%d"),
+) -> list:
     """
     Retrieve historical price data using yahoofinancials lib.
     @param ticker: string
@@ -93,9 +98,9 @@ def yf_get_historical_price_data_for_ticker(ticker,
 
     ticker_prices = []
     yahoo_financials = YahooFinancials(ticker)
-    data = yahoo_financials.get_historical_price_data(start_date=start_date,
-                                                      end_date=end_date,
-                                                      time_interval="daily")
+    data = yahoo_financials.get_historical_price_data(
+        start_date=start_date, end_date=end_date, time_interval="daily"
+    )
     if not data or not data[ticker] or "prices" not in data[ticker]:
         Logger.warning("No price data for {}".format(ticker))
         return []
@@ -103,14 +108,15 @@ def yf_get_historical_price_data_for_ticker(ticker,
     prices_dataframe = pandas.DataFrame(data[ticker]["prices"])
     for _, price_entry in prices_dataframe.iterrows():
         ticker_prices.append(
-            {"ticker": ticker,
-             "date": float(price_entry["date"]),
-             "open": float(price_entry["open"]),
-             "close": float(price_entry["close"]),
-             "high": float(price_entry["high"]),
-             "low": float(price_entry["low"]),
-             "volume": float(price_entry["volume"])
-             }
+            {
+                "ticker": ticker,
+                "date": float(price_entry["date"]),
+                "open": float(price_entry["open"]),
+                "close": float(price_entry["close"]),
+                "high": float(price_entry["high"]),
+                "low": float(price_entry["low"]),
+                "volume": float(price_entry["volume"]),
+            }
         )
 
     return ticker_prices
@@ -126,10 +132,10 @@ def get_all_tickers(es_dbi):
     # get all tickers from stocks index
     tickers = set()
     try:
-        for es_doc in es_dbi.scroll_search_documents_generator(config.ES_INDEX_STOCKS, query_body={
-            "_source": False
-        }, size=1000):
-            tickers.add(es_doc['_id'])
+        for es_doc in es_dbi.scroll_search_documents_generator(
+            config.ES_INDEX_STOCKS, query_body={"_source": False}, size=1000
+        ):
+            tickers.add(es_doc["_id"])
     except Exception as exception:
         Logger.exception(str(exception))
 
@@ -145,24 +151,22 @@ def get_last_price_date_for_ticker(ticker, es_dbi) -> str:
     """
     try:
         # get max timestamp for ticker
-        last_timestamp_docs = es_dbi.search_documents(config.ES_INDEX_STOCK_PRICES, query_body={
-            "_source": ["ticker", "date"],
-            "query": {
-                'bool': {
-                    'must': [{'term': {'ticker': ticker.lower()}}]}
+        last_timestamp_docs = es_dbi.search_documents(
+            config.ES_INDEX_STOCK_PRICES,
+            query_body={
+                "_source": ["ticker", "date"],
+                "query": {"bool": {"must": [{"term": {"ticker": ticker.lower()}}]}},
+                "sort": [{"date": {"order": "desc"}}],
             },
-            "sort": [
-                {
-                    "date": {
-                        "order": "desc"
-                    }
-                }
-            ]
-        }, size=1)
+            size=1,
+        )
         if not last_timestamp_docs or not last_timestamp_docs["hits"]["hits"]:
             return DEFAULT_LAST_PRICE_DATE
 
-        if last_timestamp_docs["hits"]["hits"][0]["_source"]["ticker"].lower() != ticker.lower():
+        if (
+            last_timestamp_docs["hits"]["hits"][0]["_source"]["ticker"].lower()
+            != ticker.lower()
+        ):
             # if ticker name is different => ticker is missing and regepx matched other (ex. ticker A)
             return DEFAULT_LAST_PRICE_DATE
 

@@ -9,7 +9,7 @@
 * Linux based OS (ex. Ubuntu)
 * Python >= 3.8
 * Docker + docker-compose
-* Datasets: https://mega.nz/folder/kchWnKaZ#oQSQyIU4QxGBSVmEjsLaTQ
+* Datasets: https://mega.nz/folder/kchWnKaZ#oQSQyIU4QxGBSVmEjsLaTQ # TODO - get from Ubuntu and re-upload
 
 ### Install steps:
 
@@ -39,20 +39,19 @@
 7. Start kibana (from src)
     1. docker-compose up kibana
 
-8. Download datasets from  https://mega.nz/folder/kchWnKaZ#oQSQyIU4QxGBSVmEjsLaTQ
-    1. save files to stock-market/data
-
-9. Import datasets (from src, with project root set to src)
+8. Import datasets (from src, with project root set to src)
     1. python3.8 scripts/init_es_database/main.py
     2. python3.8 scripts/populate_es_database/main.py
 
-10. Start webserver
+9. Start webserver
     1. docker-compose up --build webserver
 
-11. APIs available at http://localhost:5000
+10. APIs available at http://localhost:8080
     1. Test admin/user credentials - admin:admin | user:user (log-in)
     2. Returned JWT (x-access-token apiKey) must be set in order to be able to use all APIs
 
 ![](auth.png)
     
 ![](apis.png)
+
+TODO - improve readme

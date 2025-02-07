@@ -6,12 +6,9 @@ from flask import request
 # Swagger doc utils #
 #####################
 
+
 def api_param(_in, required=True, description=None, **kwargs) -> dict:
-    param = {
-        "in": _in,
-        "required": required,
-        "description": description
-    }
+    param = {"in": _in, "required": required, "description": description}
     param.update(dict(**kwargs))
     return param
 
@@ -36,6 +33,7 @@ def api_param_body(required=True, description=None, **kwargs) -> dict:
 # Request utils #
 #################
 
+
 def validate_param_type(param, expected_type) -> tuple:
     """
     Validate param type.
@@ -45,20 +43,24 @@ def validate_param_type(param, expected_type) -> tuple:
     """
     try:
         if isinstance(param, expected_type):
-            return param, 'OK'
+            return param, "OK"
 
         if expected_type in [list, dict]:
             parsed = json.loads(param)
             if isinstance(parsed, expected_type):
-                return parsed, 'OK'
-            return None, 'Param [{}] must be of type {}'.format(param, expected_type.__name__)
+                return parsed, "OK"
+            return None, "Param [{}] must be of type {}".format(
+                param, expected_type.__name__
+            )
 
         if expected_type is bool:
-            return param.strip().lower() in ["true", "1"], 'OK'
+            return param.strip().lower() in ["true", "1"], "OK"
 
-        return expected_type(param), 'OK'
+        return expected_type(param), "OK"
     except (ValueError, Exception):
-        return None, 'Param [{}] must be of type {}'.format(param, expected_type.__name__)
+        return None, "Param [{}] must be of type {}".format(
+            param, expected_type.__name__
+        )
 
 
 def get_request_body_parameter(name) -> object:
@@ -92,7 +94,7 @@ def get_request_parameter(name, expected_type, required=False):
     if not param:
         param = request.form.get(name, None)
     if param is None:
-        return (None, 'Param {} is required'.format(param)) if required else None
+        return (None, "Param {} is required".format(param)) if required else None
 
     param, msg = validate_param_type(param, expected_type)
     return (param, msg) if required else param

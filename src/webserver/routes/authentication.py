@@ -24,17 +24,17 @@ def token_required(f):
     def decorated(*args, **kwargs):
         token = None
 
-        if 'x-access-token' in request.headers:
-            token = request.headers['x-access-token']
+        if "x-access-token" in request.headers:
+            token = request.headers["x-access-token"]
 
         if not token:
-            return response(401, {}, 'Token is missing')
+            return response(401, {}, "Token is missing")
 
         try:
             data = jwt.decode(token, app.config["SECRET_KEY"])
-            current_user = User.query.filter_by(public_id=data['public_id']).first()
+            current_user = User.query.filter_by(public_id=data["public_id"]).first()
         except:
-            return response(401, {}, 'Invalid token.')
+            return response(401, {}, "Invalid token.")
 
         return f(current_user, *args, **kwargs)
 
@@ -46,29 +46,38 @@ class RouteLogin(Resource):
 
     @staticmethod
     @api.doc(description="Log in and get JWT.")
-    @api.doc(responses={
-        201: "OK",
-        401: "Could not verify authorization."
-    })
+    @api.doc(responses={201: "OK", 401: "Could not verify authorization."})
     @api.doc(security="Basic Auth")
     def post() -> response:
         auth = request.authorization
         if not auth or not auth.username or not auth.password:
-            return response(401, {'WWW-Authenticate': 'Basic realm="Login required!"'},
-                            'Could not verify authorization.')
+            return response(
+                401,
+                {"WWW-Authenticate": 'Basic realm="Login required!"'},
+                "Could not verify authorization.",
+            )
 
         user = User.query.filter_by(username=auth.username).first()
         if not user:
-            return response(401, {'WWW-Authenticate': 'Basic realm="Login required!"'},
-                            'Invalid username.')
+            return response(
+                401,
+                {"WWW-Authenticate": 'Basic realm="Login required!"'},
+                "Invalid username.",
+            )
 
         if not check_password_hash(user.password, auth.password):
-            return response(401, {'WWW-Authenticate': 'Basic realm="Login required!"'},
-                            'Invalid password.')
+            return response(
+                401,
+                {"WWW-Authenticate": 'Basic realm="Login required!"'},
+                "Invalid password.",
+            )
 
         token = jwt.encode(
-            {'public_id': user.public_id,
-             'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60)},
-            app.config["SECRET_KEY"])
+            {
+                "public_id": user.public_id,
+                "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
+            },
+            app.config["SECRET_KEY"],
+        )
 
-        return response(201, {'token': token.decode('UTF-8')}, 'OK')
+        return response(201, {"token": token.decode("UTF-8")}, "OK")

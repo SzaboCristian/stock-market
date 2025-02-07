@@ -5,8 +5,13 @@ Elasticsearch Database Interface class.
 import logging
 import time
 
-from elasticsearch import (ConflictError, Elasticsearch,
-                           ElasticsearchException, NotFoundError, helpers)
+from elasticsearch import (
+    ConflictError,
+    Elasticsearch,
+    ElasticsearchException,
+    NotFoundError,
+    helpers,
+)
 
 from util.logger.logger import Logger
 
@@ -30,21 +35,27 @@ class ElasticsearchDBI:
         """
         if ElasticsearchDBI.instance:
             raise ElasticsearchException(
-                "Singleton Elasticsearch DBI called directly. Use ElasticsearchDBI.get_instance() method")
+                "Singleton Elasticsearch DBI called directly. Use ElasticsearchDBI.get_instance() method"
+            )
 
         logging.info("Constructor - Elasticserch DBI @ {0}:{1}".format(host, port))
 
         try:
-            self.__es = Elasticsearch([{"host": host, "port": port}],
-                                      timeout=60,
-                                      retry_on_timeout=True,
-                                      max_retries=10)
+            self.__es = Elasticsearch(
+                [{"host": host, "port": port}],
+                timeout=60,
+                retry_on_timeout=True,
+                max_retries=10,
+            )
             self.__host = host
             self.__port = port
             ElasticsearchDBI.connected = True
         except Exception as exception:
             logging.error(
-                "Could not connect to ElasticSearch at {0}:{1}. Error was {2}".format(host, port, str(exception)))
+                "Could not connect to ElasticSearch at {0}:{1}. Error was {2}".format(
+                    host, port, str(exception)
+                )
+            )
 
         self.__tracer = logging.getLogger("elasticsearch")
         self.__tracer.setLevel(logging.INFO)
@@ -63,14 +74,18 @@ class ElasticsearchDBI:
                 ElasticsearchDBI.instance = ElasticsearchDBI(host=host, port=port)
                 if ElasticsearchDBI.connected:
                     break
-                Logger.error("Could not connect to Elasticsearch @ {0}:{1}".format(host, port))
+                Logger.error(
+                    "Could not connect to Elasticsearch @ {0}:{1}".format(host, port)
+                )
                 ElasticsearchDBI.instance = None
                 time.sleep(CONNECTION_TIMEOUT)
 
             if not ElasticsearchDBI.connected:
                 raise ElasticsearchException(
-                    "Could not connect to Elasticsearch @ {0}:{1} after {2} trials".format(host, port,
-                                                                                           CONNECTION_TRIALS))
+                    "Could not connect to Elasticsearch @ {0}:{1} after {2} trials".format(
+                        host, port, CONNECTION_TRIALS
+                    )
+                )
 
         return ElasticsearchDBI.instance
 
@@ -162,7 +177,9 @@ class ElasticsearchDBI:
         @return: _id: string/int/None - id of created document
         """
         try:
-            inserted = self.__es.index(index=index, body=document, id=_id, refresh=refresh)
+            inserted = self.__es.index(
+                index=index, body=document, id=_id, refresh=refresh
+            )
             return inserted["_id"]
         except ElasticsearchException as es_exception:
             Logger.error(es_exception)
@@ -171,7 +188,9 @@ class ElasticsearchDBI:
             Logger.error(exception)
             return None
 
-    def update_document(self, index, document, _id, mode="doc", refresh=True, retry_on_conflict=1) -> bool:
+    def update_document(
+        self, index, document, _id, mode="doc", refresh=True, retry_on_conflict=1
+    ) -> bool:
         """
         Update document. Update is partial, i.e only specified fields are updated.
         @param index: string
@@ -186,11 +205,20 @@ class ElasticsearchDBI:
             if mode not in ["doc", "script"]:
                 raise Exception("Invalid update mode.")
 
-            self.__es.update(index=index, body={mode: document}, id=_id, refresh=refresh,
-                             retry_on_conflict=retry_on_conflict)
+            self.__es.update(
+                index=index,
+                body={mode: document},
+                id=_id,
+                refresh=refresh,
+                retry_on_conflict=retry_on_conflict,
+            )
             return True
         except (NotFoundError, ConflictError) as exception:
-            Logger.error("Could not update document {0}. Error was {1}".format(_id, str(exception)))
+            Logger.error(
+                "Could not update document {0}. Error was {1}".format(
+                    _id, str(exception)
+                )
+            )
             return False
 
     def delete_document(self, index, _id, refresh=True) -> bool:
@@ -231,13 +259,17 @@ class ElasticsearchDBI:
         @return: dict/None
         """
         try:
-            return self.__es.mget(body={"ids": ids}, index=index, _source_includes=_source_includes).get("docs", [])
+            return self.__es.mget(
+                body={"ids": ids}, index=index, _source_includes=_source_includes
+            ).get("docs", [])
         except Exception as exception:
             Logger.error(exception)
             return None
 
     # SEARCH
-    def search_documents(self, index="_all", query_body=None, size=10000, explain=False) -> object:
+    def search_documents(
+        self, index="_all", query_body=None, size=10000, explain=False
+    ) -> object:
         """
         Search documents that match the given query_body.
         @param index: string
@@ -250,13 +282,22 @@ class ElasticsearchDBI:
             query_body = {"query": {"match_all": {}}}
 
         try:
-            return self.__es.search(index=index, body=query_body, size=size, explain=explain)
+            return self.__es.search(
+                index=index, body=query_body, size=size, explain=explain
+            )
         except Exception as exception:
             Logger.error("Search failed. {}".format(str(exception)))
             return None
 
-    def scroll_search_documents_generator(self, index, query_body=None, size=10000, sort=None, scroll="60m",
-                                          raise_on_error=False) -> object:
+    def scroll_search_documents_generator(
+        self,
+        index,
+        query_body=None,
+        size=10000,
+        sort=None,
+        scroll="60m",
+        raise_on_error=False,
+    ) -> object:
         """
         Scroll index and return documents that match query_body one by one (generator).
         @param index: string
@@ -273,7 +314,9 @@ class ElasticsearchDBI:
             sort = []
 
         try:
-            data = self.__es.search(index=index, body=query_body, size=size, scroll=scroll, sort=sort)
+            data = self.__es.search(
+                index=index, body=query_body, size=size, scroll=scroll, sort=sort
+            )
             scroll_id = data["_scroll_id"]
             scroll_size = len(data["hits"]["hits"])
 
@@ -297,7 +340,14 @@ class ElasticsearchDBI:
             return None
 
     # BULK
-    def bulk(self, actions, chunk_size=1000, raise_on_error=False, max_retries=0, request_timeout=100) -> tuple:
+    def bulk(
+        self,
+        actions,
+        chunk_size=1000,
+        raise_on_error=False,
+        max_retries=0,
+        request_timeout=100,
+    ) -> tuple:
         """
         Bulk operations. Most frequent _op_types: index, update, delete.
         @param actions: list
@@ -309,8 +359,14 @@ class ElasticsearchDBI:
         """
 
         try:
-            return helpers.bulk(self.__es, actions, chunk_size=chunk_size, raise_on_error=raise_on_error,
-                                max_retries=max_retries, request_timeout=request_timeout)
+            return helpers.bulk(
+                self.__es,
+                actions,
+                chunk_size=chunk_size,
+                raise_on_error=raise_on_error,
+                max_retries=max_retries,
+                request_timeout=request_timeout,
+            )
         except Exception as exception:
             Logger.error("Error during bulk index: {0}".format(str(exception)))
             return -1, exception

@@ -130,3 +130,5 @@ dmypy.json
 
 # lock file
 src/poetry.lock
+.idea
+.DS_Store

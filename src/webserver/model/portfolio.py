@@ -27,6 +27,7 @@ class PortfolioException(Exception):
 # Classes #
 ###########
 
+
 class Allocation:
     """
     Portfolio allocation entry. ticker and percentage must be specified.
@@ -34,8 +35,8 @@ class Allocation:
 
     def __init__(self, ticker=None, percentage=None, allocation_json=None, **kwargs):
         if allocation_json:
-            self._ticker = allocation_json.get('ticker', None)
-            self._percentage = allocation_json.get('percentage', 0)
+            self._ticker = allocation_json.get("ticker", None)
+            self._percentage = allocation_json.get("percentage", 0)
             self.__dict__.update(kwargs)
 
         else:
@@ -95,14 +96,27 @@ class Portfolio:
     Portfolio class
     """
 
-    def __init__(self, portfolio_name=None, allocations=None, user_id=None, created_timestamp=None,
-                 modified_timestamp=None, portfolio_json=None):
+    def __init__(
+        self,
+        portfolio_name=None,
+        allocations=None,
+        user_id=None,
+        created_timestamp=None,
+        modified_timestamp=None,
+        portfolio_json=None,
+    ):
         if portfolio_json:
-            self._portfolio_name = portfolio_json.get('portfolio_name', 'default_user_portfolio')
-            self._allocations = portfolio_json.get('allocations', [])
-            self._user_id = portfolio_json.get('user_id', None)
-            self._created_timestamp = portfolio_json.get('created_timestamp', int(time.time()))
-            self._modified_timestamp = portfolio_json.get('modified_timestamp', int(time.time()))
+            self._portfolio_name = portfolio_json.get(
+                "portfolio_name", "default_user_portfolio"
+            )
+            self._allocations = portfolio_json.get("allocations", [])
+            self._user_id = portfolio_json.get("user_id", None)
+            self._created_timestamp = portfolio_json.get(
+                "created_timestamp", int(time.time())
+            )
+            self._modified_timestamp = portfolio_json.get(
+                "modified_timestamp", int(time.time())
+            )
         else:
             self._portfolio_name = portfolio_name
             self._allocations = allocations
@@ -123,11 +137,13 @@ class Portfolio:
         Object dict representation.
         @return: dict
         """
-        return dict(portfolio_name=self._portfolio_name,
-                    allocations=[allocation.get_data() for allocation in self._allocations],
-                    user_id=self._user_id,
-                    created_timestamp=self._created_timestamp,
-                    modified_timestamp=self._modified_timestamp)
+        return dict(
+            portfolio_name=self._portfolio_name,
+            allocations=[allocation.get_data() for allocation in self._allocations],
+            user_id=self._user_id,
+            created_timestamp=self._created_timestamp,
+            modified_timestamp=self._modified_timestamp,
+        )
 
     def get_portfolio_name(self) -> str:
         """
@@ -146,33 +162,33 @@ class Portfolio:
 
     def get_allocations(self) -> List[Allocation]:
         """
-         Allocations getter.
-         @return: List[Allocation]
-         """
+        Allocations getter.
+        @return: List[Allocation]
+        """
         return self._allocations
 
     def set_allocations(self, allocations) -> None:
         """
-         Allocations setter.
-         @param allocations: List[Allocation]
-         @return: None
-         """
+        Allocations setter.
+        @param allocations: List[Allocation]
+        @return: None
+        """
         self._allocations = allocations
         self.validate_portfolio_allocations()
 
     def get_modified_timestamp(self) -> int:
         """
-         Modified timestamp getter.
-         @return: int
-         """
+        Modified timestamp getter.
+        @return: int
+        """
         return self._modified_timestamp
 
     def set_modified_timestamp(self, modified_timestamp) -> None:
         """
-         Modified timestamp setter.
-         @param modified_timestamp: int
-         @return: None
-         """
+        Modified timestamp setter.
+        @param modified_timestamp: int
+        @return: None
+        """
         self._modified_timestamp = modified_timestamp
 
     def backtest(self, start_ts, end_ts) -> dict:
@@ -183,45 +199,77 @@ class Portfolio:
         @return: dict
         """
 
-        backtest_info = {'start_date': datetime.fromtimestamp(start_ts).strftime('%Y-%m-%d'),
-                         'end_date': datetime.fromtimestamp(end_ts).strftime('%Y-%m-%d'),
-                         'portfolio_data': {}}
+        backtest_info = {
+            "start_date": datetime.fromtimestamp(start_ts).strftime("%Y-%m-%d"),
+            "end_date": datetime.fromtimestamp(end_ts).strftime("%Y-%m-%d"),
+            "portfolio_data": {},
+        }
 
         for allocation in self._allocations:
             ticker = allocation.get_ticker()
 
             # get first date and price
-            first_date_price = ESStockPrices.get_ticker_first_date_price(ticker, start_ts)
+            first_date_price = ESStockPrices.get_ticker_first_date_price(
+                ticker, start_ts
+            )
             if not first_date_price:
-                Logger.exception("No stock prices for ticker {} in the specified range.".format(ticker))
+                Logger.exception(
+                    "No stock prices for ticker {} in the specified range.".format(
+                        ticker
+                    )
+                )
                 first_date_price = {start_ts: 0}
                 last_date_price = first_date_price
             else:
                 # got first price -> get last date and price
-                last_date_price = ESStockPrices.get_ticker_last_date_price(ticker, end_ts)
+                last_date_price = ESStockPrices.get_ticker_last_date_price(
+                    ticker, end_ts
+                )
                 if not last_date_price:
-                    Logger.exception("Could not get last price for ticker {}.".format(ticker))
+                    Logger.exception(
+                        "Could not get last price for ticker {}.".format(ticker)
+                    )
                     last_date_price = first_date_price
 
-            backtest_info['portfolio_data'][ticker] = first_date_price
-            backtest_info['portfolio_data'][ticker].update(last_date_price)
+            backtest_info["portfolio_data"][ticker] = first_date_price
+            backtest_info["portfolio_data"][ticker].update(last_date_price)
 
         # compute return for each holding
-        for ticker in backtest_info['portfolio_data']:
-            start_ts, end_ts = min(list(backtest_info['portfolio_data'][ticker].keys())), max(
-                list(backtest_info['portfolio_data'][ticker].keys()))
+        for ticker in backtest_info["portfolio_data"]:
+            start_ts, end_ts = min(
+                list(backtest_info["portfolio_data"][ticker].keys())
+            ), max(list(backtest_info["portfolio_data"][ticker].keys()))
 
-            backtest_info['portfolio_data'][ticker]['return_value_per_share'] = \
-                backtest_info['portfolio_data'][ticker][end_ts] - backtest_info['portfolio_data'][ticker][start_ts]
+            backtest_info["portfolio_data"][ticker]["return_value_per_share"] = (
+                backtest_info["portfolio_data"][ticker][end_ts]
+                - backtest_info["portfolio_data"][ticker][start_ts]
+            )
 
-            backtest_info['portfolio_data'][ticker]['return_percentage'] = \
-                (100 * backtest_info['portfolio_data'][ticker][end_ts] / backtest_info['portfolio_data'][ticker][
-                    start_ts]) - 100 if backtest_info['portfolio_data'][ticker][start_ts] else 0
+            backtest_info["portfolio_data"][ticker]["return_percentage"] = (
+                (
+                    100
+                    * backtest_info["portfolio_data"][ticker][end_ts]
+                    / backtest_info["portfolio_data"][ticker][start_ts]
+                )
+                - 100
+                if backtest_info["portfolio_data"][ticker][start_ts]
+                else 0
+            )
 
         # compute total return
         backtest_info["total_return_percentage"] = round(
-            sum([allocation.get_percentage() / 100 * backtest_info['portfolio_data'][allocation.get_ticker()][
-                "return_percentage"] for allocation in self._allocations]), 2)
+            sum(
+                [
+                    allocation.get_percentage()
+                    / 100
+                    * backtest_info["portfolio_data"][allocation.get_ticker()][
+                        "return_percentage"
+                    ]
+                    for allocation in self._allocations
+                ]
+            ),
+            2,
+        )
 
         return backtest_info
 
@@ -256,7 +304,9 @@ class Portfolio:
         ticker_tracker = set()
         for allocation in self._allocations:
             if allocation.get_ticker() in ticker_tracker:
-                raise AllocationException("Duplicate ticker {}".format(allocation.get_ticker()))
+                raise AllocationException(
+                    "Duplicate ticker {}".format(allocation.get_ticker())
+                )
 
             allocation_percentage += allocation.get_percentage()
             ticker_tracker.add(allocation.get_ticker())

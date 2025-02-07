@@ -5,7 +5,6 @@ from webserver.core.stocks_management import StocksManagementAPI
 
 
 class TestStocksAPI(unittest.TestCase, InterfaceTestAPI):
-
     def setUp(self) -> None:
         self.test_ticker = "AAPL"
 
@@ -72,7 +71,9 @@ class TestStocksAPI(unittest.TestCase, InterfaceTestAPI):
         self.assertEqual(msg, "Server error. Please contact administrator.")
 
     def __test_bad_params_update_stock(self) -> None:
-        status, data, msg = StocksManagementAPI.update_stock_info(ticker={"invalid": "type"}, updated_info=None)
+        status, data, msg = StocksManagementAPI.update_stock_info(
+            ticker={"invalid": "type"}, updated_info=None
+        )
         self.assertEqual(status, 500)
         self.assertFalse(data)
         self.assertEqual(msg, "Server error. Please contact administrator.")
@@ -129,22 +130,27 @@ class TestStocksAPI(unittest.TestCase, InterfaceTestAPI):
 
     def __test_valid_params_update_stock(self) -> None:
         # get stock info
-        status, stock_info, msg = StocksManagementAPI.get_stocks(ticker=self.test_ticker)
+        status, stock_info, msg = StocksManagementAPI.get_stocks(
+            ticker=self.test_ticker
+        )
         self.assertEqual(status, 200)
         self.assertTrue(stock_info)
         self.assertEqual(msg, "OK")
 
         # update info
         stock_info["updated"] = True
-        status, updated, msg = StocksManagementAPI.update_stock_info(ticker=self.test_ticker,
-                                                                     updated_info=stock_info)
+        status, updated, msg = StocksManagementAPI.update_stock_info(
+            ticker=self.test_ticker, updated_info=stock_info
+        )
         self.assertEqual(status, 200)
         self.assertTrue(updated)
         self.assertEqual(msg, "OK")
 
         # check updated
         # get stock info
-        status, updated_info, msg = StocksManagementAPI.get_stocks(ticker=self.test_ticker)
+        status, updated_info, msg = StocksManagementAPI.get_stocks(
+            ticker=self.test_ticker
+        )
         self.assertEqual(status, 200)
         self.assertTrue(updated_info)
         self.assertEqual(msg, "OK")

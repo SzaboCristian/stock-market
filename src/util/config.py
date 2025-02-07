@@ -5,14 +5,18 @@ def load_env():
     try:
         from dotenv import load_dotenv
 
-        load_dotenv(verbose=False,
-                    dotenv_path=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"))
+        load_dotenv(
+            verbose=False,
+            dotenv_path=os.path.join(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"
+            ),
+        )
         print("Loaded .env")
     except Exception as e:
         print("Could not load dot .env file [{}]".format(str(e)))
 
 
-PROJECT_ROOT = "/home/bomfly/Desktop/Webapp_project_finance/stock-market"
+PROJECT_ROOT = os.environ.get("PROJECT_ROOT", ".")
 LOG_DIR = os.path.join(PROJECT_ROOT, "logs")
 
 ELASTICSEARCH_HOST = os.environ.get("ELASTIC_HOST", "localhost")
