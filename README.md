@@ -53,5 +53,3 @@
 ![](auth.png)
     
 ![](apis.png)
-
-TODO - improve readme
