@@ -9,7 +9,6 @@
 * Linux based OS (ex. Ubuntu)
 * Python >= 3.8
 * Docker + docker-compose
-* Datasets: https://mega.nz/folder/kchWnKaZ#oQSQyIU4QxGBSVmEjsLaTQ # TODO - get from Ubuntu and re-upload
 
 ### Install steps:
 
