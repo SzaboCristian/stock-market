@@ -32,12 +32,11 @@ services:
     image: image_stock_market_webserver
     container_name: container_stock_market_webserver
     build: .
-    ports:
-      - "8080:8080"  # Expose port 8080 to the host
-    networks:
-      - custom_network  # Connect to custom network to access Elasticsearch
+    expose:
+      - 8080 # Expose port 8080 to host for the API
+    network_mode: "host"
     environment:
-      elasticsearch_host: container_elasticsearch_7_5_0  # Use the container name of Elasticsearch
+      elasticsearch_host: container_elasticsearch_7_5_0
       elasticsearch_port: 9200
       kibana_host: container_kibana_7_5_0
       kibana_port: 5601

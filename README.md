@@ -9,6 +9,7 @@
 * Linux based OS (ex. Ubuntu)
 * Python >= 3.8
 * Docker + docker-compose
+* (For MacOS only) chipmk/tap/docker-mac-net-connect
 
 ### Install steps:
 
@@ -18,7 +19,7 @@
     3. python3.8 --version
     4. sudo apt install python3-pip
     5. pip3 --version
-    6. pip3 install poetry 
+    6. pip3 install poetry
 
 2. Install dependencies
     1. poetry lock
@@ -43,7 +44,10 @@
     2. python3.8 scripts/populate_es_database/main.py
 
 9. Start webserver
-    1. docker-compose up --build webserver
+   1. (For Mac OS only, this allows connecting from host network to docker)
+      - brew install chipmk/tap/docker-mac-net-connect
+      - sudo brew services start chipmk/tap/docker-mac-net-connect
+   2. docker-compose up --build webserver
 
 10. APIs available at http://localhost:8080
     1. Test admin/user credentials - admin:admin | user:user (log-in)
